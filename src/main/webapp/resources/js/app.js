@@ -63,7 +63,8 @@ app.main=(()=>{
 		    });
 		    $('#mainLogin').attr({'data-toggle':'modal', 'data-target':"#myModal111"}).click(e=>{
 		    	alert('로그인');
-		    			   chobongki.common.init();
+		    			   chobongki.common.init(ctx);
+		    
 		    });
 		    $('#mainJoin').click(e=>{
 	             alert('회원가입');

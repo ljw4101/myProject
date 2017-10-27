@@ -6,6 +6,7 @@ import org.springframework.stereotype.Component;
 public class ReviewBoard {
 	private String
 		boardSeq,
-		reviewStar
+		reviewStar,
+		hostSerial
 		;
 }

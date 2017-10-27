@@ -3,16 +3,114 @@
   PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
   "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
 <mapper namespace="com.airbnb.web.mapper.JWMapper">
-    
-    <insert id="insert"></insert>
+	<resultMap id="respMap" type="com.airbnb.web.command.ResultMap" >
+		<id property="boardSeq" column="board_seq" />
+		<result property="title" column="board_title"/>
+		<result property="contents" column="board_content"/>
+		<result property="regdate" column="board_regdate"/>
+		<result property="cateName" column="cate_name"/>
+		<result property="cateLevel" column="cate_level"/>
+		<result property="cateSeq" column="cate_seq"/>
+		<result property="date" column="date"/>
+		<result property="sale" column="sale"/>
+		<result property="gender" column="gender"/>
+		<result property="memberId" column="member_id"/>
+		<result property="hostSerial" column="host_serial"/>
+		<result property="residenceName" column="residence_name"/>
+		<result property="infoImg" column="info_img"/>
+	</resultMap>
 	
-	<select id="selectList"></select>
+    <insert id="insert" parameterType="com.airbnb.web.command.Command">
+    	<if test="dir != null">
+    		<choose>
+    			<when test="dir == 'board'">
+    				INSERT INTO ${dir} (board_seq, board_title, board_content, board_regdate, member_id)
+    				VALUES (#{pageNumber}, #{page}, #{view}, sysdate() ,'admin')
+    			</when>
+    			<when test="dir == 'boardcate'">
+    				INSERT INTO ${dir} (cate_seq, board_seq, cate_name, cate_level)
+    				VALUES (#{search}, #{pageNumber}, #{view}, #{page})
+    			</when>
+    		</choose>
+    	</if>
+	</insert>
 	
-	<select id="selectOne"></select>
+	<select id="comboList" resultMap="respMap" parameterType="com.airbnb.web.command.Command">
+		SELECT cate_level, cate_name FROM boardcate
+		WHERE board_seq = '0';
+	</select>
+	
+	<select id="selectList" resultMap="respMap" parameterType="com.airbnb.web.command.Command">
+		<if test="dir != null">
+			<choose>
+				<when test="dir == 'board'">
+					SELECT * FROM (
+						SELECT b.board_seq
+					      	, (CASE WHEN c.cate_name IS NULL THEN '분류없음' 
+					  		   ELSE c.cate_name end) AS cate_name
+					      	, b.board_title
+					        , b.board_regdate 
+						FROM ${dir} b
+					    LEFT OUTER JOIN boardcate c ON b.board_seq = c.board_seq
+					  	WHERE (b.board_seq LIKE '11%' OR b.board_seq LIKE 'bo%')
+					) t
+					WHERE (t.board_title LIKE #{search} 
+						   OR t.cate_name LIKE #{search})
+					ORDER BY t.board_regdate DESC;
+				</when>
+				<when test="dir == 'residence'">
+					SELECT * FROM ${dir}
+					WHERE residence_name LIKE #{search}
+					OR member_id LIKE #{search}
+					ORDER BY residence_name
+				</when>
+			</choose>
+		</if>		
+	</select>
    
-   	<select id="count"></select>
-  
-	<update id="update"></update>
+	<select id="selectOne" resultMap="respMap" parameterType="com.airbnb.web.command.Command">
+		SELECT b.board_seq, c.cate_level, b.board_title, b.board_content
+		FROM ${dir} b 
+		LEFT OUTER JOIN boardcate c ON b.board_seq = c.board_seq
+		WHERE b.${column} = #{search};
+	</select>
+	
+	<select id="count" resultMap="respMap" parameterType="com.airbnb.web.command.Command">  
+		SELECT COUNT(*) AS cnt FROM ${dir};
+	</select>
 
-	<delete id="delete"></delete>
+	<update id="update" parameterType="com.airbnb.web.command.Command">
+		<if test="dir != null">
+    		<choose>
+    			<when test="dir == 'board'">
+    				UPDATE ${dir} SET board_title = #{page}
+    								, board_content = #{view}
+    								, board_regdate = sysdate()
+    				WHERE board_seq = #{pageNumber};
+    			</when>
+    			<when test="dir == 'boardcate'">
+    				UPDATE ${dir} SET cate_level = #{page}
+    								, cate_name = #{view}
+    				WHERE board_seq = #{pageNumber};
+    			</when>
+    		</choose>
+    	</if>
+	</update>
+	
+	<delete id="delete" parameterType="com.airbnb.web.command.Command">
+		<if test="dir != null">
+			DELETE FROM ${dir}
+    		<choose>
+    			<when test="dir == 'board'">
+					WHERE board_seq = #{search}
+    			</when>
+    			<when test="dir == 'boardcate'">
+    				WHERE board_seq = #{search}
+    			</when>
+    			<when test="dir == 'residence'">
+					WHERE host_serial = #{search}
+    			</when>
+    		</choose>
+    	</if>	
+	</delete>
 </mapper>

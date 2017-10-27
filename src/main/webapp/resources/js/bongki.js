@@ -1,6 +1,7 @@
 var chobongki=chobongki || {};
 chobongki.common=(()=>{
    var init = (ctx)=>{
+	   alert('ctx : '+ctx);
       chobongki.session.init(ctx);
      chobongki.index.init();
    };
@@ -8,22 +9,17 @@ chobongki.common=(()=>{
 })();
 
 
-chobongki.index=(()=>{
-   
+chobongki.index=(()=>{  
    var $wrapper,$navbar,$container,ctx,img,js,css,temp;
    var init=function(){
-        js=$$('j');
-        ctx=$$('x');
-        img=$$('i');
+        js=sessionStorage.getItem('j');
+        ctx=sessionStorage.getItem('x');        
         onCreate();
        
      };
-    var onCreate=function(){
-       
-       
-       
-          $('#email').html(compUI.input('email','text').addClass('cho_input').css({'background-color':'white','placeholder':'이메일'}).attr('placeholder','이메일 주소'));
-          $('#pass').html(compUI.input('pass','password').addClass('cho_input').css({'background-color':'white' ,'placeholder':'비밀번호'}).attr('placeholder','비밀번호'));
+    var onCreate=function(){                    
+          $('#email').html(compUI.input('useremail','text').addClass('cho_input').css({'background-color':'white'}).attr('placeholder','이메일 주소'));
+          $('#pass').html(compUI.input('userpass','password').addClass('cho_input').css({'background-color':'white'}).attr('placeholder','비밀번호'));
           $('#facebookDi').html(compUI.btn('facebookBtn').addClass('cho_button').css({'background-color':'#3B5998'}).text('페이스북 계정으로 로그인'));
           $('#joinDiv').html(compUI.btn('join').addClass('cho_button').attr({'data-toggle':'modal', 'data-target':"#myModal222"}).css({'background-color':'#ffb380'}).text('회원가입'));
           $('#loginDiv').html(compUI.btn('login').addClass('cho_button').css({'background-color':'#ff5a5f'}).text('로그인'));  
@@ -35,7 +31,8 @@ chobongki.index=(()=>{
           $('#addjoin').html(compUI.btn('addjoin').addClass('cho_button').css({'background-color':'#ffb380'}).text('회원가입'));
            
           $('#addlogin').attr({'data-toggle':'modal', 'data-target':"#myModal111"}).click(()=>{
-             
+        	  
+        	 
              alert('로그인ㄱㄱ');
             app.common.init(ctx);
             
@@ -55,11 +52,41 @@ chobongki.index=(()=>{
              
           });
          
-          $('#loginDiv').click(()=>{
-             alert('로그인');
-             
-             $('body').html(cho.join());
-             chobongki.index.init(); 
+          $('#loginDiv').click(e=>{
+        	 e.preventDefault();
+             alert('로그인22222');
+         
+          var email=$('#useremail').val();
+       	  var pass=$('#userpass').val();
+       	  if(email===""){
+       		  if(pass===""){
+       			  
+       		  }
+       		alert('값이없다');
+       		
+       	 chobongki.common.init();
+       	  }
+       	  else{
+       	  $.ajax({
+       		  		 url :ctx+'/get/login', 
+					 method : 'POST',					
+					 data  : JSON.stringify({
+						 'memberId' : email,
+						 'memberPassword' : pass
+					 }),
+					 contentType : 'application/json',
+					 success : d=>{
+						 alert('ajax통신성공    :::'+d.member.name);
+					app.common.init(ctx);
+					
+					 },
+					 error : (x,s,m)=>{
+						 alert('통신에러발생'+m);
+					 }
+				 });
+       	  }   
+       	app.common.init();
+           
           });
              
         
@@ -510,16 +537,15 @@ chobongki.session=
          return sessionStorage.getItem(x);
            }
 };
-var $$= function(x){return chobongki.session.getPath(x);};
-/*   ////=====페이스북 api====///
-(function(d, s, id) {
+/*var $$= function(x){return chobongki.session.getPath(x);};*/
+   ////=====페이스북 api====///
+/*(function(d, s, id) {
     var js, fjs = d.getElementsByTagName(s)[0];
     if (d.getElementById(id)) return;
     js = d.createElement(s); js.id = id;
     js.src = "//connect.facebook.net/ko_KR/sdk.js#xfbml=1&version=v2.10&appId=1697133987026933";
     fjs.parentNode.insertBefore(js, fjs);
   }(document, 'script', 'facebook-jssdk'));
-
 window.fbAsyncInit = function() {
     FB.init({
       appId      : '1726756034297526',
@@ -528,7 +554,6 @@ window.fbAsyncInit = function() {
     });
     FB.AppEvents.logPageView();
   };
-
   (function(d, s, id){
      var js, fjs = d.getElementsByTagName(s)[0];
      if (d.getElementById(id)) {return;}
@@ -550,4 +575,4 @@ window.fbAsyncInit = function() {
           } else {
             // The person is not logged into this app or we are unable to tell. 
           }
-        });*/
+	});*/

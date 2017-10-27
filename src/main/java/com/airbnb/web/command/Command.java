@@ -6,12 +6,14 @@ import org.springframework.stereotype.Component;
 import com.airbnb.web.constant.Extension;
 import com.airbnb.web.constant.Path;
 
+import lombok.Data;
 
 @Lazy
 @Component
+@Data
 public class Command {
-protected String dir,action, page,pageNumber,search,view,column,startRow,endRow;
-	/*id,pw*/
+	protected String dir, action, page, pageNumber, search, view, column, startRow, endRow;
+
 	public String getStartRow() {
 		return startRow;
 	}
@@ -28,7 +30,6 @@ protected String dir,action, page,pageNumber,search,view,column,startRow,endRow;
 		this.endRow = endRow;
 	}
 
-	/*dir & pageNumber¥¬ π´¡∂∞« ¿÷¥Ÿ*/
 	public String getDir() {
 		return dir;
 	}
@@ -47,8 +48,6 @@ protected String dir,action, page,pageNumber,search,view,column,startRow,endRow;
 		}else {
 			this.action=action;
 		}
-		/*this.action = (action==null)?"move":action;*/
-		System.out.println("COmmand action:::"+action);
 	}
 
 	public String getPage() {
@@ -57,7 +56,6 @@ protected String dir,action, page,pageNumber,search,view,column,startRow,endRow;
 
 	public void setPage(String page) {
 		this.page = page;
-		System.out.println("∆‰¿Ã¡ˆ ¿Ã∏ß :: "+this.page);
 	}
 
 	public String getPageNumber() {
@@ -66,7 +64,6 @@ protected String dir,action, page,pageNumber,search,view,column,startRow,endRow;
 
 	public void setPageNumber(String pageNumber) {
 		this.pageNumber = (pageNumber==null)?"1":pageNumber;
-		System.out.println("command:: ∆‰¿Ã¡ˆ π¯»£::"+this.pageNumber);
 	}
 
 	public String getSearch() {
@@ -75,7 +72,6 @@ protected String dir,action, page,pageNumber,search,view,column,startRow,endRow;
 
 	public void setSearch(String search) {
 		this.search=(search==null)? "none":search;
-		System.out.println("commandDTOº≠ƒ°: "+this.search);
 	}
 
 	public String getColumn() {
@@ -84,19 +80,19 @@ protected String dir,action, page,pageNumber,search,view,column,startRow,endRow;
 
 	public void setColumn(String column) {
 		this.column = (column==null)?"none":column;
-		System.out.println("ƒ√∑≥: "+this.column);
 	}
+	
 	public String getView() {
 		return view;
 	}
 
 	public void process() {
-		/*VIEW∏¶ ¡§«ÿ¡ÿ¥Ÿ*/
-		this.view=(dir.equals("home"))?
-				"/WEB-INF/view/common/home.jsp":
-			Path.VIEW+dir+Path.SEPARATOR+page+Extension.JSP;
-		System.out.println("¿Ãµø∆‰¿Ã¡ˆ:"+this.view);
+		this.view = (dir.equals("home"))?"/WEB-INF/view/common/home.jsp":Path.VIEW+dir+Path.SEPARATOR+page+Extension.JSP;
+		System.out.println("Command/Ïù¥ÎèôÌéòÏù¥ÏßÄ: "+view);
 	}
 	
-
+	public String toString() {
+		return String.format("dir: %s / action: %s / page: %s / pageNumber: %s / search: %s / view: %s / column: %s / startRow: %s / endRow: %s", dir, action, page, pageNumber, search, view, column, startRow, endRow);
+	}
+	
 }

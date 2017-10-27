@@ -2,11 +2,8 @@
 var jw=jw || {}; /*name space*/
 jw.common = (function(){
 	var init = function(ctx){
-		alert('이지원님의 관리자 입니다');
 		jw.session.init(ctx);
-		//jw.resvBoard.list();
 		jw.index.init();
-		//jw.help.init();
 	};
 	
 	return {init : init};
@@ -54,77 +51,6 @@ jw.index = (function(){
 	return {init : init};
 })();
 
-/*******************************
- * main 도움말 popup
- *******************************/
-jw.help = (function(){
-	var js, temp;
-	var init = function() {
-		js=$$('j');
-		temp=js+'/template.js';
-		onCreate();
-	};
-	
-	var onCreate = function(){
-		setContentView();
-	};
-	
-	var setContentView = function(){
-		$('body').html(helpUI.frame());
-		
-		$.getScript(temp, ()=>{
-			//상단 도움말 닫기 버튼
-			compUI.btn('hp_btnClose').appendTo($('#hp_btndiv')).addClass('glyphicon glyphicon-remove jw_help_btnClose').css({'float':'right', 'cursor':'pointer'});
-		
-			//search bar
-			compUI.input('help_search', 'text').appendTo($('#hp_search_grp')).addClass('form-control').attr('placeholder','질문을 입력하거나 키워드로 검색하세요').css({'width':'270px'});
-			compUI.span('help_btngrp').appendTo($('#hp_search_grp')).addClass('input-group-btn');
-			compUI.btn('help_btn_search').appendTo($('#help_btngrp')).addClass('btn btn-default search_btn');
-			compUI.spanX().addClass('glyphicon glyphicon-search').appendTo($('#help_btn_search'));
-		
-			//search results
-			var data=[
-				{ seq:'1', title:'title1'},
-				{ seq:'2', title:'title2'},
-				{ seq:'3', title:'title3'},
-				{ seq:'4', title:'title4'},
-				{ seq:'5', title:'title5'}
-			];
-			
-			$.each(data, (i,j)=>{
-				compUI.li('hp_result_li_'+i).appendTo($('#hp_result_li')).addClass('jw_help_li');
-				compUI.spanX().appendTo($('#hp_result_li_'+i)).text(j.title).css({'font-size':'15px', 'color':'#484848', 'font-weight':'300', 'line-height':'18px', 'height':'100%', 'width':'100%'});
-				
-			});
-		});
-	};
-	
-	return { init : init };
-})();
-
-/*******************************
- * UI
- * 도움말 UI
- *******************************/
-var helpUI = {
-	frame : ()=>{
-		return '<div class="jw_help_frame">'
-			+ '		<div class="jw_help_header">'
-			+ '			<div style="display:inline-block;"><span>에어비앤비 도움말</span></div>'
-			+ '			<div id="hp_btndiv" style="float:right;"></div>'
-			+ '		</div>'
-			+ '		<div class="jw_help_content">'
-			+ '			<div id="hp_search_grp" class="input-group custom-search-form jw_help_search"></div>'
-			+ '			<div style="position:relative">'
-			+ '				<ul id="hp_result_ul" class="jw_help_ul">'
-			+ '					<div><span class="jw_help_subTitle">추천 도움말<sapn></div>'
-			+ '					<div id="hp_result_li"></div>'
-			+ '				</ul>'
-			+ '			</div>'		
-			+ '		</div>'
-			+ '</div>';
-	}
-}
 
 /*******************************
  * 통계
@@ -162,10 +88,11 @@ jw.stats = (function(){
 /*******************************
  * 숙소
  *******************************/
-jw.accom = (function(){
-	var js, temp, img;
+jw.accom = (()=>{
+	var ctx, js, temp, img;
 	var init = function(){
 		js=$$('j');
+		ctx = $$('x');
 		img = $$('i');
 		temp=js+'/template.js';
 		onCreate();
@@ -181,38 +108,85 @@ jw.accom = (function(){
 			//accom search bar
 			compUI.input('acc_search', 'text').appendTo($('#acc_input_grp')).addClass('form-control').attr('placeholder','Search...');
 			compUI.span('acc_btngrp').appendTo($('#acc_input_grp')).addClass('input-group-btn');
-			compUI.btn('acc_btn_search').appendTo($('#acc_btngrp')).addClass('btn btn-default search_btn');
+			compUI.btn('acc_btn_search').appendTo($('#acc_btngrp')).addClass('btn btn-default search_btn')
+			.click(()=>{
+				var _search = $('#acc_search').val();
+				
+				$.ajax({
+					url : ctx+'/jw/list/residence',
+					method : 'post',
+					dataType : 'json',
+	                data : JSON.stringify({
+                        'contents' : _search
+                    }),
+	                contentType : 'application/json',
+	                success : d=>{
+	                	$('#acc_list').empty();
+	                	acclistDraw(d);
+                    },
+                    error : (x,s,m)=>{
+                        alert('에러발생! '+m);
+                    }
+				});
+			});
 			compUI.spanX().addClass('glyphicon glyphicon-search').appendTo($('#acc_btn_search'));
 			
 			//accom list
-			var data=[
-				{ hseq:'1', hname:'home1', name:'host1', himg:'testimg.jpg'},
-				{ hseq:'2', hname:'home2', name:'host2', himg:'testimg.jpg'},
-				{ hseq:'3', hname:'home3', name:'host3', himg:'testimg.jpg'},
-				{ hseq:'4', hname:'home4', name:'host4', himg:'testimg.jpg'},
-				{ hseq:'5', hname:'home5', name:'host5', himg:'testimg.jpg'},
-				{ hseq:'6', hname:'home6', name:'host6', himg:'testimg.jpg'}
-			];
-			
-			$.each(data, (i,j)=>{
-				compUI.div("dvwrap_"+i).appendTo($('#acc_list')).css({'float':'left', 'height':'250px', 'width':'25%', 'margin-top':'5px'});
-				//image
-				compUI.div("dvimg_"+i).appendTo($('#dvwrap_'+i)).css({'float':'left', 'height':'83%', 'width':'100%', 'margin-top':'5px'});
-				compUI.image('img_'+j.hseq, img+'/'+j.himg).appendTo($('#dvimg_'+i)).css({'height':'100%', 'margin':'auto', 'display':'block', 'border':'1px solid #D5D5D5'});
-				//content
-				compUI.div("dvbtom_"+i).appendTo($('#dvwrap_'+i)).css({'float':'left', 'height':'15%', 'width':'100%', 'margin-top':'5px'});
-				compUI.div("dv_L"+i).appendTo($('#dvbtom_'+i)).css({'float':'left'});
-				compUI.spanX().appendTo($('#dv_L'+i)).text(j.hname+" | "+j.name).css({'margin-left':'5px', 'font-weight':'bold'});
-				compUI.div("dv_R"+i).appendTo($('#dvbtom_'+i)).css({'float':'right'});
-				compUI.span('acc_btn_del_'+i).appendTo($('#dv_R'+i)).html('삭제').attr('displsy','inline').addClass('label label-default').css({'margin-right':'5px', 'font-size':'90%', 'cursor':'pointer'})
-				.click(()=>{
-					alert('삭제');
-				})
+			$.ajax({
+				url : ctx+'/jw/list/residence',
+				method : 'post',
+				dataType : 'json',
+				data : JSON.stringify({
+                    'title' : 'residence'
+                }),
+				contentType : 'application/json', 
+				success : d=>{
+					$('#acc_list').empty();
+					acclistDraw(d);
+				},
+				error : (x,s,m)=>{
+					alert('에러발생! '+m);
+				}
 			});
 			
 			$('#acc_pagebar').append(boardUI.pagebar());
 		});
 	}; 
+	
+	var acclistDraw = (d)=>{
+		$.each(d.list, (i,j)=>{
+			compUI.div("dvwrap_"+i).appendTo($('#acc_list')).css({'float':'left', 'height':'250px', 'width':'25%', 'margin-top':'5px'});
+			//image
+			var mainImg = (j.infoImg === null)?img+'/testimg.jpg':j.infoImg;
+			compUI.div("dvimg_"+i).appendTo($('#dvwrap_'+i)).css({'float':'left', 'height':'83%', 'width':'100%', 'margin-top':'5px'});
+			compUI.image('img_'+j.hostSerial, mainImg).appendTo($('#dvimg_'+i)).css({'height':'100%', 'margin':'auto', 'display':'block', 'border':'1px solid #D5D5D5'});
+			//content
+			compUI.div("dvbtom_"+i).appendTo($('#dvwrap_'+i)).css({'float':'left', 'height':'15%', 'width':'100%', 'margin-top':'5px'});
+			compUI.div("dv_L"+i).appendTo($('#dvbtom_'+i)).css({'float':'left'});
+			compUI.spanX().appendTo($('#dv_L'+i)).text(j.residenceName+" | "+j.memberId).css({'margin-left':'5px', 'font-weight':'bold'});
+			compUI.div("dv_R"+i).appendTo($('#dvbtom_'+i)).css({'float':'right'});
+			compUI.span('acc_btn_del_'+i).appendTo($('#dv_R'+i)).html('삭제').attr('displsy','inline').addClass('label label-default').css({'margin-right':'5px', 'font-size':'90%', 'cursor':'pointer'})
+			.click(()=>{
+				var _serial = j.hostSerial;
+				$.ajax({
+					url : ctx+'/jw/delete/residence',
+					method : 'post',
+					dataType : 'json',
+					data : JSON.stringify({
+	                    'title' : _serial
+	                }),
+					contentType : 'application/json', 
+					success : d=>{
+						$('#acc_list').empty();
+						setContentView();
+					},
+					error : (x,s,m)=>{
+						alert('에러발생! '+m);
+					}
+				});
+			})
+		});
+	}
 	
 	return { init : init };
 })();
@@ -220,63 +194,66 @@ jw.accom = (function(){
 /*******************************
  * 게시판
  *******************************/
-jw.board = (function(){
-	var js, temp;
-	var init = function(){
+jw.board = (()=>{
+	var js, ctx, temp, action_flag;
+	var init = ()=>{
 		js=$$('j');
+		ctx=$$('x')
 		temp=js+'/template.js';
+		action_flag = "insert";
 	};
 	
-	var list = function(){
+	var list = ()=>{
 		init();
 		$('#content').html(boardUI.frame());
 		$.getScript(temp, ()=>{
 			//search bar
 			compUI.input('brd_search', 'text').appendTo($('#brd_input_grp')).addClass('form-control').attr('placeholder','Search...');
 			compUI.span('brd_btngrp').appendTo($('#brd_input_grp')).addClass('input-group-btn');
-			compUI.btn('brd_btn_search').appendTo($('#brd_btngrp')).addClass('btn btn-default search_btn');
+			compUI.btn('brd_btn_search').appendTo($('#brd_btngrp')).addClass('btn btn-default search_btn')
+			.click(()=>{
+				var _search = $('#brd_search').val();
+				
+				$.ajax({
+					url : ctx+'/jw/list/board',
+					method : 'post',
+					dataType : 'json',
+	                data : JSON.stringify({
+                        'contents' : _search
+                    }),
+	                contentType : 'application/json',
+	                success : d=>{
+	                	brdlistDraw(d);
+                    },
+                    error : (x,s,m)=>{
+                        alert('에러발생! '+m);
+                    }
+				});
+			});
 			compUI.spanX().addClass('glyphicon glyphicon-search').appendTo($('#brd_btn_search'));
 			
 			//board button_grp 
 			compUI.span('brd_btn_write').appendTo($('#brd_btn_grp')).attr('displsy','inline').html('글쓰기').addClass('label label-danger').css({'font-size':'90%', 'cursor':'pointer'})
 			.click(()=>{
-				detail();
+				detail('w');
 			});
 			
 			//board_list
 			$('#brd_list').html(boardUI.tbl());
-			var data=[
-				{ seq:'1', cate_name1:'test1', cate_name2:'test2', cate_name3:'test3', title:'title1', regdate:'2017-09-10'},
-				{ seq:'2', cate_name1:'test1', cate_name2:'test2', cate_name3:'test3', title:'title2', regdate:'2017-09-10'},
-				{ seq:'3', cate_name1:'test1', cate_name2:'test2', cate_name3:'test3', title:'title3', regdate:'2017-09-10'},
-				{ seq:'4', cate_name1:'test1', cate_name2:'test2', cate_name3:'test3', title:'title4', regdate:'2017-09-10'},
-				{ seq:'5', cate_name1:'test1', cate_name2:'test2', cate_name3:'test3', title:'title5', regdate:'2017-09-10'}
-			];
-			
-			var tr="";
-			$.each(data, (i,j)=>{
-				tr += '<tr style="height:25px; text-align:center;">'
-					+ '<td>'+j.seq+'</td>'
-					+ '<td>'+j.cate_name1+'</td>'
-					+ '<td>'+j.cate_name2+'</td>'
-					+ '<td>'+j.cate_name3+'</td>'
-					+ '<td><a onclick="">'+j.title+'</a></td>'
-					+ '<td>'+j.regdate+'</td>'
-					+ '<td id="tbl_btnarea'+j.seq+'"></td>'
-					+ '</tr>'
-			});
-			$('#brd_tbody').html(tr);	
-			
-			//수정&삭제 버튼
-			$.each(data, (i,j)=>{
-				compUI.span('brd_btn_modify_'+i).appendTo($('#tbl_btnarea'+j.seq)).attr('displsy','inline').html('수정').addClass('label label-warning').css({'cursor':'pointer'})
-				.click(()=>{
-					alert('수정');
-				});
-				compUI.span('brd_btn_del_'+i).appendTo($('#tbl_btnarea'+j.seq)).attr('displsy','inline').html('삭제').addClass('label label-default').css({'margin-left':'3px', 'cursor':'pointer'})
-				.click(()=>{
-					alert('삭제');
-				});
+			$.ajax({
+				url : ctx+'/jw/list/board',
+				method : 'post',
+				dataType : 'json',
+				data : JSON.stringify({
+                    'title' : 'board'
+                }),
+				contentType : 'application/json',
+				success : d=>{
+					brdlistDraw(d);
+				},
+				error : (x,s,m)=>{
+					alert('에러발생! '+m);
+				}
 			});
 			
 			//pagebar
@@ -284,12 +261,84 @@ jw.board = (function(){
 		});
 	}; 
 	
-	var detail = function(){
+	var brdlistDraw = (d)=>{
+		var tr="";
+		$.each(d.list, (i,j)=>{
+			tr += '<tr style="height:25px; text-align:center;">'
+				+ '<td>'+j.boardSeq+'</td>'
+				+ '<td>'+j.cateName+'</td>'
+				+ '<td>'+j.title+'</td>'
+				+ '<td>'+j.regdate+'</td>'
+				+ '<td id="tbl_btnarea'+j.boardSeq+'"></td>'
+				+ '</tr>'
+		});
+		$('#brd_tbody').html(tr);	
+		
+		//수정&삭제 버튼
+		$.each(d.list, (i,j)=>{
+			compUI.span('brd_btn_modify_'+i).appendTo($('#tbl_btnarea'+j.boardSeq)).attr('displsy','inline').html('수정').addClass('label label-warning').css({'cursor':'pointer'})
+			.click(()=>{
+				detail('u', j.boardSeq);	
+				action_flag = "update";
+				$.ajax({
+					url : ctx + '/jw/get/board',
+					method : 'post',
+					dataType : 'json',
+					data : JSON.stringify({
+						'boardSeq' : j.boardSeq,
+						'title' : 'board_seq'
+					}),
+					contentType : 'application/json', 
+					success : d=>{
+						//$('#brdD_combo_lvl1').val(d.detail.cateLevel);
+						$('#brdD_ipt_title').val(d.detail.title);
+						$('#summernote').summernote('code', d.detail.contents);
+						//$('p').text(d.detail.contents);
+					},
+					error : (x,s,m)=>{
+						alert('에러발생! '+m);
+					}
+				});
+			});
+			
+			compUI.span('brd_btn_del_'+i).appendTo($('#tbl_btnarea'+j.boardSeq)).html('삭제').attr('displsy','inline').addClass('label label-default').css({'margin-left':'3px', 'cursor':'pointer'})
+			.click(()=>{
+				if(confirm("게시글 "+j.boardSeq+"을 정말 삭제하시겠습니까?")){
+					$.ajax({
+						url : ctx + '/jw/delete/board',
+						method : 'post',
+						dataType : 'json',
+						data : JSON.stringify({
+							'boardSeq' : j.boardSeq,
+						}),
+						contentType : 'application/json', 
+						success : d=>{
+							if(d.result === "success"){
+								alert("삭제성공!!");
+								list();
+							}else{
+								alert("삭제실패!!");
+							}
+						},
+						error : (x,s,m)=>{
+							alert('에러발생! '+m);
+						}
+					});
+				}else{
+					return false;
+				}
+			});
+		});
+	};
+	
+	var detail = (x, y)=>{
 		init();
-		$('#content').html(boardUI.detail());
+		$('#content').html(boardUI.detail(x));
 		$.getScript(temp, ()=>{
+			var title_msg = (x ==='w')?'글쓰기':'글수정';
+			var action = (x ==='w')?'post':'put';
 			//board header title
-			compUI.span('brdD_titleH').appendTo($('#brdD_titleH')).text('글쓰기').css({'font-weight':'bold', 'font-size':'20px', 'padding':'0 5 0 0'});
+			compUI.span('brdD_titleH').appendTo($('#brdD_dv_title')).text(title_msg).css({'font-weight':'bold', 'font-size':'20px', 'padding':'0 5 0 0'});
 			//board button_grp 
 			compUI.span('brdD_btn_golist').appendTo($('#brdD_btn_grp')).attr('displsy','inline').html('목록으로').addClass('label label-default').css({'font-size':'90%', 'cursor':'pointer'})
 			.click(()=>{
@@ -297,26 +346,58 @@ jw.board = (function(){
 			});
 			compUI.span('brdD_btn_ok').appendTo($('#brdD_btn_grp')).attr('displsy','inline').html('완료').addClass('label label-danger').css({'font-size':'90%', 'margin-left':'3px', 'cursor':'pointer'})
 			.click(()=>{
-				alert('완료');
+				var _combo = $('#brdD_combo_lvl1').val();
+				var _combo_name = $("#brdD_combo_lvl1 option:selected").text();
+				var _title = $('#brdD_ipt_title').val();
+				var _content = $('#summernote').summernote('code');
+				var _bo_seq = (action_flag === "update")? y: "";
+				
+				$.ajax({
+					 url : ctx+'/jw/'+action+'/board',
+					 method : 'post',
+		             dataType : 'json',
+		             data : JSON.stringify({
+		            	 'boardSeq' : _bo_seq,
+		            	 'regdate' : _combo,
+		            	 'memberId' : _combo_name,
+		            	 'title' : _title,
+		            	 'contents' : _content
+		             }),
+		             contentType : 'application/json',
+		             success : d=>{
+		            	 if(d.result==="success"){
+		            		 alert(title_msg+" 성공!!");
+		            		 list();
+		            	 }else{
+		            		 alert(title_msg+" 실패!!");
+		            	 }
+		             },
+		             error : (x,s,m)=>{
+		            	 alert('에러발생! '+m);
+		             }
+				});
 			});
 			
 			//comboBox
-			var lvl1 = [{val:'lvl1_1', text:'공지분류1'},{val:'lvl1_2', text:'공지분류1'},{val:'lvl1_3', text:'공지분류1'}];
-			var lvl2 = [{val:'lvl2_1', text:'공지분류2'},{val:'lvl2_2', text:'공지분류2'},{val:'lvl2_3', text:'공지분류2'}];
-			var lvl3 = [{val:'lvl3_1', text:'공지분류2'},{val:'lvl3_2', text:'공지분류3'},{val:'lvl3_3', text:'공지분류3'}];
-			
-			compUI.select('brdD_combo_lvl1').appendTo($('#brdD_gubun')).css({'height':'30px', 'width':'88px', 'margin-right':'5px'});
-			$.each(lvl1, (i,j)=>{
-				compUI.option(j.val, j.text).appendTo($('#brdD_combo_lvl1'));
+			compUI.select('brdD_combo_lvl1').appendTo($('#brdD_gubun')).css({'height':'30px', 'width':'100px', 'margin-right':'5px'});
+			$.ajax({
+				 url : ctx+'/jw/list/combo',
+				 method : 'post',
+	             dataType : 'json',
+	             data : JSON.stringify({
+	            	 'title' : 'boardcate' 
+	             }),
+	             contentType : 'application/json',
+	             success : d=>{
+	            	 $.each(d.combobox, (i,j)=>{
+	            		 compUI.option(j.cateLevel, j.cateName).appendTo($('#brdD_combo_lvl1'));
+	         		});
+	             },
+	             error : (x,s,m)=>{
+	            	 alert('에러발생! '+m);
+	             }
 			});
-			compUI.select('brdD_combo_lvl2').appendTo($('#brdD_gubun')).css({'height':'30px', 'width':'88px', 'margin-right':'5px'});
-			$.each(lvl2, (i,j)=>{
-				compUI.option(j.val, j.text).appendTo($('#brdD_combo_lvl2'));
-			});
-			compUI.select('brdD_combo_lvl3').appendTo($('#brdD_gubun')).css({'height':'30px', 'width':'88px', 'margin-right':'5px'});
-			$.each(lvl3, (i,j)=>{
-				compUI.option(j.val, j.text).appendTo($('#brdD_combo_lvl3'));
-			});
+			$('#brdD_combo_lvl1').selectedIndex="0";
 			
 			//input title
 			compUI.input('brdD_ipt_title', 'text').appendTo($('#brdD_title')).css({'height':'30px', 'width':'100%'});
@@ -325,11 +406,11 @@ jw.board = (function(){
 		//위지웍 에디터 적용
 		$(document).ready(()=>{ 
 			$('#summernote').summernote({
-				 height: 400,          // 기본 높이값
-			     minHeight: null,      // 최소 높이값(null은 제한 없음)
-			     maxHeight: 400,       // 최대 높이값(null은 제한 없음)
-			     focus: true,          // 페이지가 열릴때 포커스를 지정함
-			     lang: 'ko-KR'         // 한국어 지정(기본값은 en-US)
+				height: 400,          // 기본 높이값
+			    minHeight: null,      // 최소 높이값(null은 제한 없음)
+			    maxHeight: 400,       // 최대 높이값(null은 제한 없음)
+			    focus: true,          // 페이지가 열릴때 포커스를 지정함
+			    lang: 'ko-KR'         // 한국어 지정(기본값은 en-US)
 			}); 
 		});
 	};
@@ -344,14 +425,14 @@ jw.board = (function(){
 /*******************************
  * 예약내역 list
  *******************************/
-jw.resvBoard = (function(){
+jw.resvBoard = (()=>{
    var js, temp;
-   var init = function(){
+   var init = ()=>{
       js=$$('j');
       temp=js+'/template.js';
    };
    
-   var list = function(){
+   var list = ()=>{
       init();
       $('body').html(resvbrdUI.frame());
       $.getScript(temp, ()=>{
@@ -398,20 +479,20 @@ jw.resvBoard = (function(){
 jw.session=
 	{
 		//set
-		init : function(ctx){
+		init : (ctx)=>{
 					sessionStorage.setItem('x', ctx);	//접근경로를 로그인 할때만 준다(보안)
 					sessionStorage.setItem('j', ctx+'/resources/js');
 					sessionStorage.setItem('i', ctx+'/resources/img');
 					sessionStorage.setItem('c', ctx+'/resources/css');
 			   },
 		//get
-		getPath : function(x){
+		getPath : (x)=>{
 			return sessionStorage.getItem(x);
 		}
 	};
 
 //함수
-var $$ = function(x){return jw.session.getPath(x);};
+var $$ = (x)=>{return jw.session.getPath(x);};
 
 /*******************************
  * UI
@@ -538,9 +619,7 @@ var boardUI = {
 		var theadD =[
 	            {width: '5%', txt:'No'},
 	            {width: '12%', txt:'공지분류1'},
-	            {width: '12%', txt:'공지분류2'},
-	            {width: '12%', txt:'공지분류3'},
-	            {width: '30%', txt:'제목'},
+	            {width: '55%', txt:'제목'},
 	            {width: '15%', txt:'작성일'},
 	            {width: '10%', txt:' '}
             ];
@@ -577,12 +656,12 @@ var boardUI = {
 	detail : ()=>{
 		return '<div style="width:80%; margin:auto">'
 				+ '		<div style="width:100%; display:inline-block;">'
-				+ '			<div id="brdD_titleH" style="float:left; width:50%"></div>'
+				+ '			<div id="brdD_dv_title" style="float:left; width:50%"></div>'
 				+ '			<div id="brdD_btn_grp" style="float:right; height:28px; padding-top:5px"></div>'
 				+ '		</div>'
 				+ '		<div style="width:100%; display:inline-block; margin-top:10px;">'
-				+ '			<div id="brdD_gubun" style="float:left; width:280px;"></div>'
-				+ '			<div id="brdD_title" style="float:left; width:78%;"></div>'
+				+ '			<div id="brdD_gubun" style="float:left; width:105px;"></div>'
+				+ '			<div id="brdD_title" style="float:left; width:91.8%;"></div>'
 				+ '		</div>'
 				+ '		<div id="brd_content" style="width:100%; margin-top:5px; margin-right:5px"><div id="summernote"></div></div>'
 				+ '</div>';
