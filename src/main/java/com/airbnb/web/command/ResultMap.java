@@ -15,7 +15,8 @@ public class ResultMap {
 	private String memberId, boardSeq, title, contents, regdate,
 				cateName, cateLevel, cateSeq,
 				date, sale, gender,
-				hostSerial, residenceName, infoImg;
+				hostSerial, residenceName, infoImg,
+				rowNum, totalCnt;
 	
 	/*common yongju */
 	/*common juyeon */

@@ -110,46 +110,23 @@ jw.accom = (()=>{
 			compUI.span('acc_btngrp').appendTo($('#acc_input_grp')).addClass('input-group-btn');
 			compUI.btn('acc_btn_search').appendTo($('#acc_btngrp')).addClass('btn btn-default search_btn')
 			.click(()=>{
-				var _search = $('#acc_search').val();
-				
-				$.ajax({
-					url : ctx+'/jw/list/residence',
-					method : 'post',
-					dataType : 'json',
-	                data : JSON.stringify({
-                        'contents' : _search
-                    }),
-	                contentType : 'application/json',
-	                success : d=>{
-	                	$('#acc_list').empty();
-	                	acclistDraw(d);
-                    },
-                    error : (x,s,m)=>{
-                        alert('에러발생! '+m);
-                    }
+				//search
+				var _search = ($('#acc_search').val()==="")?'x':$('#acc_search').val();
+				var url = ctx+'/jw/list/residence/'+_search+'/1';
+
+				$.getJSON(url, d=>{
+					$('#acc_list').empty();
+					acclistDraw(d);
 				});
 			});
 			compUI.spanX().addClass('glyphicon glyphicon-search').appendTo($('#acc_btn_search'));
 			
 			//accom list
-			$.ajax({
-				url : ctx+'/jw/list/residence',
-				method : 'post',
-				dataType : 'json',
-				data : JSON.stringify({
-                    'title' : 'residence'
-                }),
-				contentType : 'application/json', 
-				success : d=>{
-					$('#acc_list').empty();
-					acclistDraw(d);
-				},
-				error : (x,s,m)=>{
-					alert('에러발생! '+m);
-				}
+			var url = ctx+'/jw/list/residence/x/1';
+			$.getJSON(url, d=>{
+				$('#acc_list').empty();
+				acclistDraw(d);
 			});
-			
-			$('#acc_pagebar').append(boardUI.pagebar());
 		});
 	}; 
 	
@@ -157,7 +134,7 @@ jw.accom = (()=>{
 		$.each(d.list, (i,j)=>{
 			compUI.div("dvwrap_"+i).appendTo($('#acc_list')).css({'float':'left', 'height':'250px', 'width':'25%', 'margin-top':'5px'});
 			//image
-			var mainImg = (j.infoImg === null)?img+'/testimg.jpg':j.infoImg;
+			var mainImg = (j.infoImg === "" || j.infoImg === null)?img+'/testimg.jpg':j.infoImg;
 			compUI.div("dvimg_"+i).appendTo($('#dvwrap_'+i)).css({'float':'left', 'height':'83%', 'width':'100%', 'margin-top':'5px'});
 			compUI.image('img_'+j.hostSerial, mainImg).appendTo($('#dvimg_'+i)).css({'height':'100%', 'margin':'auto', 'display':'block', 'border':'1px solid #D5D5D5'});
 			//content
@@ -168,22 +145,31 @@ jw.accom = (()=>{
 			compUI.span('acc_btn_del_'+i).appendTo($('#dv_R'+i)).html('삭제').attr('displsy','inline').addClass('label label-default').css({'margin-right':'5px', 'font-size':'90%', 'cursor':'pointer'})
 			.click(()=>{
 				var _serial = j.hostSerial;
-				$.ajax({
-					url : ctx+'/jw/delete/residence',
-					method : 'post',
-					dataType : 'json',
-					data : JSON.stringify({
-	                    'title' : _serial
-	                }),
-					contentType : 'application/json', 
-					success : d=>{
-						$('#acc_list').empty();
-						setContentView();
-					},
-					error : (x,s,m)=>{
-						alert('에러발생! '+m);
-					}
-				});
+				if(confirm("숙소 "+j.residenceName+"을 정말 삭제하시겠습니까?")){
+					$.ajax({
+						url : ctx+'/jw/delete/residence',
+						method : 'post',
+						dataType : 'json',
+						data : JSON.stringify({
+		                    'boardSeq' : _serial
+		                }),
+						contentType : 'application/json', 
+						success : d=>{
+							if(d.result === "success"){
+								alert("삭제성공!!");
+								$('#acc_list').empty();
+								setContentView();
+							}else{
+								alert("삭제실패!!");
+							}
+						},
+						error : (x,s,m)=>{
+							alert('에러발생! '+m);
+						}
+					});
+				}else{
+					return false;
+				}
 			})
 		});
 	}
@@ -212,22 +198,13 @@ jw.board = (()=>{
 			compUI.span('brd_btngrp').appendTo($('#brd_input_grp')).addClass('input-group-btn');
 			compUI.btn('brd_btn_search').appendTo($('#brd_btngrp')).addClass('btn btn-default search_btn')
 			.click(()=>{
-				var _search = $('#brd_search').val();
+				var _search = ($('#brd_search').val()==="")?'x':$('#brd_search').val();
+				var url = ctx+'/jw/list/board/'+_search;
 				
-				$.ajax({
-					url : ctx+'/jw/list/board',
-					method : 'post',
-					dataType : 'json',
-	                data : JSON.stringify({
-                        'contents' : _search
-                    }),
-	                contentType : 'application/json',
-	                success : d=>{
-	                	brdlistDraw(d);
-                    },
-                    error : (x,s,m)=>{
-                        alert('에러발생! '+m);
-                    }
+				$.getJSON(url, d=>{
+					brdlistDraw(d);
+					
+					$('#brd_pagebar').append(boardUI.pagebar());
 				});
 			});
 			compUI.spanX().addClass('glyphicon glyphicon-search').appendTo($('#brd_btn_search'));
@@ -240,24 +217,58 @@ jw.board = (()=>{
 			
 			//board_list
 			$('#brd_list').html(boardUI.tbl());
-			$.ajax({
-				url : ctx+'/jw/list/board',
-				method : 'post',
-				dataType : 'json',
-				data : JSON.stringify({
-                    'title' : 'board'
-                }),
-				contentType : 'application/json',
-				success : d=>{
-					brdlistDraw(d);
-				},
-				error : (x,s,m)=>{
-					alert('에러발생! '+m);
-				}
+			var url = ctx+'/jw/list/board/x/1';
+			
+			$.getJSON(url, d=>{
+				brdlistDraw(d);
+				//$('#brd_pagebar').append(boardUI.pagebar());
 			});
 			
 			//pagebar
 			$('#brd_pagebar').append(boardUI.pagebar());
+			$.getJSON(url, d=>{
+				var frame = '';
+				var sheet = '';
+				var total_count = 0;
+				$.each(d.list, (i,j)=>{
+					total_count = j.totalCnt
+				});
+				
+				var start_page = 1; //d.startPage;
+				var end_page = 2; //d.endPage;
+				var block_size = 3;	//d.blockSize;
+				var page_size = total_count/block_size;
+				
+				var page_num = 1;	//d.pageNum
+				var page_size = 2;	//d.pageSize;
+				var total_page = 3;	//d.totalPage;
+				
+				
+
+				if(total_count== 0){
+					sheet += '<li><span style="color:#D9534F;">등록된 게시글이 없습니다.<span></li>';
+					frame += sheet;
+					$('#page_form').append(frame);
+				}else{
+					//데이터 그리는 작업
+					if(start_page != 1){
+						sheet += ' <li><a onclick="" href="#" style="color:#D9534F;"><span class="glyphicon glyphicon-fast-backward" aria-hidden="true"></span></a></li>'
+							  +  ' <li><a onclick="" href="#" style="color:#D9534F;" aria-label="Previous"><span aria-hidden="true">&laquo;</span></a></li>'
+					}
+					
+					for(var i=1; i<=block_size; i++){
+						sheet += ' <li><a href="#" style="color:#D9534F;">'+i+'</a></li>';
+					}	
+					
+					if(page_size>1){
+						sheet += '  <li><a onclick="" href="#" style="color:#D9534F;" aria-label="Next"><span aria-hidden="true">&raquo;</span></a></li>'
+							  +  '  <li><a onclick="" href="#" style="color:#D9534F;"><span class="glyphicon glyphicon-fast-forward" aria-hidden="true"></span></a></li>';
+					}
+					
+					frame += sheet;
+					$('#page_form').append(frame);
+				}
+			});
 		});
 	}; 
 	
@@ -290,10 +301,9 @@ jw.board = (()=>{
 					}),
 					contentType : 'application/json', 
 					success : d=>{
-						//$('#brdD_combo_lvl1').val(d.detail.cateLevel);
+						//$("#brdD_combo_lvl1").val(d.detail.cateLevel);
 						$('#brdD_ipt_title').val(d.detail.title);
 						$('#summernote').summernote('code', d.detail.contents);
-						//$('p').text(d.detail.contents);
 					},
 					error : (x,s,m)=>{
 						alert('에러발생! '+m);
@@ -380,23 +390,13 @@ jw.board = (()=>{
 			
 			//comboBox
 			compUI.select('brdD_combo_lvl1').appendTo($('#brdD_gubun')).css({'height':'30px', 'width':'100px', 'margin-right':'5px'});
-			$.ajax({
-				 url : ctx+'/jw/list/combo',
-				 method : 'post',
-	             dataType : 'json',
-	             data : JSON.stringify({
-	            	 'title' : 'boardcate' 
-	             }),
-	             contentType : 'application/json',
-	             success : d=>{
-	            	 $.each(d.combobox, (i,j)=>{
-	            		 compUI.option(j.cateLevel, j.cateName).appendTo($('#brdD_combo_lvl1'));
-	         		});
-	             },
-	             error : (x,s,m)=>{
-	            	 alert('에러발생! '+m);
-	             }
-			});
+			var url = ctx+'/jw/list/combo/x';
+			$.getJSON(url, d=>{
+				$('#brdD_combo_lvl1').empty();
+				$.each(d.combobox, (i,j)=>{
+					compUI.option(j.cateLevel, j.cateName).appendTo($('#brdD_combo_lvl1'));
+        		});
+			});	
 			$('#brdD_combo_lvl1').selectedIndex="0";
 			
 			//input title
@@ -638,6 +638,14 @@ var boardUI = {
 	},
 	
 	pagebar : ()=>{
+	return '<div><nav aria-label="Page navigation" style="width:314px; margin:auto;">'
+		+ '      <ul id="page_form" class="pagination">'
+		+ '     </ul>'
+		+ ' </nav></div>'; 
+	},
+	
+	/* backUp
+	 * pagebar : ()=>{
 		return '<div><nav aria-label="Page navigation" style="width:314px; margin:auto;">'
 			+ '      <ul id="page_form" class="pagination">'
 			+ '         <li><a onclick="" href="#" style="color:#D9534F;"><span class="glyphicon glyphicon-fast-backward" aria-hidden="true"></span></a></li>'
@@ -651,7 +659,7 @@ var boardUI = {
 			+ '         <li><a onclick="" href="#" style="color:#D9534F;"><span class="glyphicon glyphicon-fast-forward" aria-hidden="true"></span></a></li>'
 			+ '     </ul>'
 			+ ' </nav></div>'; 
-	},
+	},*/
 	
 	detail : ()=>{
 		return '<div style="width:80%; margin:auto">'

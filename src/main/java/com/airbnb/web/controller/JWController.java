@@ -14,6 +14,7 @@ import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.airbnb.web.command.Command;
+import com.airbnb.web.command.ResultMap;
 import com.airbnb.web.domain.Board;
 import com.airbnb.web.mapper.JWMapper;
 import com.airbnb.web.service.IDeleteService;
@@ -27,6 +28,7 @@ public class JWController {
 	@Autowired JWMapper mapper;
 	@Autowired Command cmd;
 	@Autowired TransactionService tx;
+	@Autowired ResultMap resM;
 	
 	@RequestMapping(value="/jw/post/{cate}", method=RequestMethod.POST, consumes="application/json")
 	public @ResponseBody Map<?, ?> post(@RequestBody Board board, @PathVariable String cate){
@@ -55,20 +57,41 @@ public class JWController {
 		return map;
 	}
 	
-	@RequestMapping(value="/jw/list/{cate}", method=RequestMethod.POST, consumes="application/json")
-	public @ResponseBody Map<?, ?> list(@RequestBody Board board, @PathVariable String cate){
+	
+	@RequestMapping("/jw/list/{cate}/{param}/{page}")
+	public @ResponseBody Map<?, ?> list(@PathVariable String cate, @PathVariable String param, @PathVariable String page){
 		logger.info("JWController 진입: list : "+cate);
 		Map<String, Object> map = new HashMap<>();
 		
+		String search = (param.equals("x"))?"%%":"%"+param+"%";
 		switch(cate) {
 			case "board":
-			case "residence":		
-				String search = (board.getContents()==null)?"%%":"%"+board.getContents()+"%";
+				int pageBlock = 2;
+				String endR = String.valueOf(1 * (Integer.parseInt(page)*pageBlock));
+				String startR = (page.equals("1"))?"1":String.valueOf(Integer.parseInt(endR)+1);
 				
 				cmd.setDir(cate);
 				cmd.setSearch(search);
-				System.out.println(cmd.getDir()+"/"+board.getContents()+"/"+cmd.getSearch());
+				cmd.setStartRow(startR);
+				cmd.setEndRow(endR);
 				
+				System.out.println(cmd.getDir()+"/"+cmd.getSearch()+"/"+cmd.getStartRow()+"/"+cmd.getEndRow());
+
+				map.put("list", new IListService() {
+					@Override
+					public List<?> execute(Object o) {
+						return mapper.selectList(cmd);
+					}
+				}.execute(cmd));
+				
+				System.out.println(map.get("list"));
+				break;
+			case "residence":		
+				
+				cmd.setDir(cate);
+				cmd.setSearch(search);
+				System.out.println(cmd.getDir()+"/"+cmd.getSearch());
+
 				map.put("list", new IListService() {
 					@Override
 					public List<?> execute(Object o) {
@@ -93,6 +116,7 @@ public class JWController {
 		map.put("result", "success");
 		return map;
 	}
+	
 	
 	@RequestMapping(value="/jw/get/{cate}", method=RequestMethod.POST, consumes="application/json")
 	public @ResponseBody Map<?, ?> get(@RequestBody Board board, @PathVariable String cate){
@@ -148,19 +172,36 @@ public class JWController {
 		logger.info("JWController 진입: delete : "+cate);
 		Map<String, Object> map = new HashMap<>();
 		
-		//board
-		cmd.setDir(cate);	//table
-		cmd.setSearch(board.getBoardSeq());	//board_seq
-		tx.remove(cmd);
-		System.out.println("board: "+cmd.getSearch()+"/"+cmd.getDir());
-		
-		//boardcate
-		cmd.setDir("boardcate");//table
-		tx.remove(cmd);
-		System.out.println("boardcate"+cmd.getSearch()+"/"+cmd.getDir());
+		switch(cate) {
+			case "board":
+				//board
+				cmd.setDir(cate);	//table
+				cmd.setSearch(board.getBoardSeq());	//board_seq
+				tx.remove(cmd);
+				System.out.println("board: "+cmd.getSearch()+"/"+cmd.getDir());
+				
+				//boardcate
+				cmd.setDir("boardcate");//table
+				tx.remove(cmd);
+				System.out.println("boardcate"+cmd.getSearch()+"/"+cmd.getDir());
+				
+				map.put("result", "success");
+				
+				break;
+			case "residence":
+				cmd.setDir(cate);
+				cmd.setSearch(board.getBoardSeq());
+				
+				new IDeleteService() {
+					@Override
+					public void execute(Object o) {
+						mapper.delete(cmd);
+						map.put("result", "success");
+					}
+				}.execute(cmd);
 
-		map.put("result", "success");
-
+				break;
+		}
 		return map;
 	}
 }
