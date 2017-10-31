@@ -1,4 +1,5 @@
 package com.airbnb.web.controller;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -21,6 +22,9 @@ import com.airbnb.web.service.IDeleteService;
 import com.airbnb.web.service.IGetService;
 import com.airbnb.web.service.IListService;
 import com.airbnb.web.service.TransactionService;
+
+import net.sf.json.JSONArray;
+import net.sf.json.JSONObject;
 
 @RestController
 public class JWController {
@@ -115,6 +119,160 @@ public class JWController {
 		
 		map.put("result", "success");
 		return map;
+	}
+	
+	
+	@RequestMapping("/jw/list/chart/{cate}")
+	public @ResponseBody JSONObject chart(@PathVariable String cate){
+		Map<String, Object> map = new HashMap<>();
+		JSONObject data = new JSONObject();
+		JSONObject jsonObj = new JSONObject();
+		JSONObject jOb1 = new JSONObject();
+		JSONObject jOb2 = new JSONObject();
+		JSONObject jOb3 = new JSONObject();
+		JSONObject jOb4 = new JSONObject();
+		JSONArray ajaxArr = new JSONArray();
+		JSONArray colArr = new JSONArray();
+		JSONArray rowArr = new JSONArray();
+		
+		cmd.setDir(cate);
+		switch (cate) {
+			case "column":
+				jOb1.put("type", "string");
+				jOb1.put("label", "month");
+				jOb2.put("type", "number");
+				jOb2.put("label", "2015");
+				jOb3.put("type", "number");
+				jOb3.put("label", "2016");
+				jOb4.put("type", "number");
+				jOb4.put("label", "2017");
+				
+				colArr.add(jOb1);
+				colArr.add(jOb2);
+				colArr.add(jOb3);
+				colArr.add(jOb4);
+				data.put("cols", colArr);
+				
+				@SuppressWarnings("unchecked") 
+				ArrayList<ResultMap> arrColumn = (ArrayList<ResultMap>) new IListService() {
+					@Override
+					public List<?> execute(Object o) {
+						return mapper.chartList(cmd);
+					}
+				}.execute(cmd);
+
+				for(int i=0; i<arrColumn.size();i++) {	
+					jOb1 = new JSONObject();
+					jOb2 = new JSONObject();
+					jOb3 = new JSONObject();
+					jOb4 = new JSONObject();
+					rowArr = new JSONArray();
+					
+					String temp1= (arrColumn.get(i).getBlyearSales()==null)?"0":arrColumn.get(i).getBlyearSales();
+					String temp2= (arrColumn.get(i).getLyearSales()==null)?"0":arrColumn.get(i).getLyearSales();
+					String temp3= (arrColumn.get(i).getTyearSales()==null)?"0":arrColumn.get(i).getTyearSales();
+					
+					jOb1.put("v", arrColumn.get(i).getColMonth()+"월");
+					jOb2.put("v", Integer.parseInt(temp1));
+					jOb3.put("v", Integer.parseInt(temp2));
+					jOb4.put("v", Integer.parseInt(temp3));
+					rowArr.add(jOb1);
+					rowArr.add(jOb2);
+					rowArr.add(jOb3);
+					rowArr.add(jOb4);
+					jsonObj.put("c", rowArr);
+					ajaxArr.add(jsonObj);
+				}
+				
+				data.put("rows", ajaxArr);
+				System.out.println("column: "+data);
+				break;
+	
+			case "line":		
+				jOb1.put("type", "string");
+				jOb1.put("label", "year");
+				jOb2.put("type", "number");
+				jOb2.put("label", "사용자수");
+				colArr.add(jOb1);
+				colArr.add(jOb2);
+				data.put("cols", colArr);
+				
+				//data
+				@SuppressWarnings("unchecked") 
+				ArrayList<ResultMap> arrline = (ArrayList<ResultMap>) new IListService() {
+					@Override
+					public List<?> execute(Object o) {
+						return mapper.chartList(cmd);
+					}
+				}.execute(cmd);
+				
+				for(int i=0; i<arrline.size();i++) {
+					jOb1 = new JSONObject();
+					jOb2 = new JSONObject();
+					rowArr = new JSONArray();
+					
+					String temp= (arrline.get(i).getColCount()==null)?"0":arrline.get(i).getColCount();
+					jOb1.put("v", String.valueOf(arrline.get(i).getColYear()));
+					jOb2.put("v", Integer.parseInt(temp));
+					rowArr.add(jOb1);
+					rowArr.add(jOb2);
+					jsonObj.put("c", rowArr);
+		
+					ajaxArr.add(jsonObj);
+				}
+				
+				data.put("rows", ajaxArr);
+				System.out.println("line: "+data);
+				break;
+			case "geo":		
+				//지역 맵핑
+				Map<String, String> reginMap = new HashMap<>();
+				reginMap.put("서울특별시", "KR-11");
+				reginMap.put("부산광역시", "KR-26");
+				reginMap.put("전라북도", "KR-45");
+				reginMap.put("경상북도", "KR-47");
+				reginMap.put("제주특별자치도", "KR-49");
+				
+				jOb1.put("type", "string");
+				jOb1.put("label", "City");
+				jOb2.put("type", "number");
+				jOb2.put("label", "숙소수");
+				colArr.add(jOb1);
+				colArr.add(jOb2);
+				data.put("cols", colArr);
+				
+				//data
+				@SuppressWarnings("unchecked") 
+				ArrayList<ResultMap> arrgeo = (ArrayList<ResultMap>) new IListService() {
+					@Override
+					public List<?> execute(Object o) {
+						return mapper.chartList(cmd);
+					}
+				}.execute(cmd);
+				
+				for(int i=0; i<arrgeo.size();i++) {
+					jOb1 = new JSONObject();
+					jOb2 = new JSONObject();
+					rowArr = new JSONArray();
+					
+					String temp= (arrgeo.get(i).getColCount()==null)?"0":arrgeo.get(i).getColCount();
+					jOb1.put("v", reginMap.get(arrgeo.get(i).getColArea()));
+					jOb1.put("f", arrgeo.get(i).getColArea());
+					jOb2.put("v", Integer.parseInt(temp));
+					rowArr.add(jOb1);
+					rowArr.add(jOb2);
+					jsonObj.put("c", rowArr);
+		
+					ajaxArr.add(jsonObj);
+				}
+				
+				data.put("rows", ajaxArr);
+				System.out.println("geo: "+data);
+				break;
+		}
+		
+		map.put("result", "success");
+		return data;
 	}
 	
 	

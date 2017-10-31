@@ -965,7 +965,7 @@ li {
 /**jiwon admin*/
 
 .jw_index_header {
-	display:inline-block; width:100%; border-bottom:1px solid #D5D5D5; height: 64px;
+	display:inline-block; width:100%; border-bottom:1px solid #D5D5D5; height: 64px; 
 }
 .jw_div_border {
 	border:1px solid #D5D5D5;
@@ -981,7 +981,7 @@ li {
 	cursor: pointer;
   	font-size: 12px;
   	font-weight: 700;
-  	color: #5D5D5D;
+  	color: #E0E0E0;
   	margin-top: 28.5px;
     margin-bottom: 12px;
     margin-right: 12px;
@@ -993,7 +993,7 @@ li {
 /* ---------------------- */
 .jw_navbar-ul {
   	list-style: none;
-  	position: fixed;
+  	/* position: fixed; */
   	padding-top: 28.5px;
     padding-bottom: 12px;
 }
@@ -1007,10 +1007,10 @@ li {
   	display: block;
   	font-size: 15px;
   	font-weight: 700;
-  	color: #008489;
+  	color: #FBC02D; /*#008489*/
 }
 .jw_navbar-ul>li>span:hover {
-	border-bottom:2px solid #008489;
+	border-bottom:2px solid #FBC02D;
 }
 .jw_main-nav-logobox { display: table-cell !important;vertical-align: middle !important;}
 .jw_main-nav-logobox2 { display: table-cell !important;

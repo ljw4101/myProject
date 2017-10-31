@@ -16,7 +16,10 @@ public class ResultMap {
 				cateName, cateLevel, cateSeq,
 				date, sale, gender,
 				hostSerial, residenceName, infoImg,
-				rowNum, totalCnt;
+				rowNum, totalCnt,
+				//chart
+				colYear, colMonth, colArea, colCount, blyearSales, lyearSales, tyearSales
+				;
 	
 	/*common yongju */
 	/*common juyeon */

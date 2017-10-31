@@ -55,10 +55,11 @@ jw.index = (function(){
 /*******************************
  * 통계
  *******************************/
-jw.stats = (function(){
-	var js, temp;
+jw.stats = (()=>{
+	var ctx, js, temp;
 	var init = function(){
 		js=$$('j');
+		ctx = $$('x');
 		temp=js+'/template.js';
 		onCreate();
 	};
@@ -78,12 +79,98 @@ jw.stats = (function(){
 			}
 		});
 		
+		//chart 호출
+		callChart();
 	}; 
 	
+	var callChart = function(){
+		jw.makeGraph.columnChart(ctx);
+		jw.makeGraph.lineChart(ctx);
+		jw.makeGraph.geoChart(ctx);
+		
+		$("#charts").width("90%");
+	};
 	
 	return { init : init };
 })();
 
+/*******************************
+ * chart
+ * 객체 literal 생성방식
+ * 부품들을 (DOM객체)return 하기만 하면 됨
+ *******************************/
+jw.makeGraph = 
+{
+	columnChart : ctx=>{
+		google.charts.load('current', {'packages':['bar']});
+	    google.charts.setOnLoadCallback(drawChart);
+	    
+	    function drawChart() {
+	    	var url = ctx+'/jw/list/chart/column';
+			$.getJSON(url, d=>{
+				var data = new google.visualization.DataTable(d);
+		  
+				var options = {
+						title : ' ',
+		                bars: 'vertical',
+		                vAxis: {format: 'decimal'},
+		                legend: { position: 'bottom' },
+		                width : 680,
+		                colors: ['#7570b3', '#008489', '#FF5A5F']
+		        };
+				
+				var chart = new google.charts.Bar(document.getElementById('stat_div_column'));
+		        chart.draw(data, google.charts.Bar.convertOptions(options));
+			});
+	    }
+	},
+	lineChart : ctx=>{
+		google.charts.load('current', {'packages':['corechart']});
+		google.charts.setOnLoadCallback(drawChart);
+	
+		function drawChart() {
+			var url = ctx+'/jw/list/chart/line';
+			$.getJSON(url, d=>{
+				var data = new google.visualization.DataTable(d);
+		  
+				var options = {
+		        	curveType: 'function',
+		        	legend: { position: 'bottom' },
+		        	hAxis: {titleTextStyle: {color: '#333'}},
+		        	vAxis: {minValue: 0},
+		        	colors: ['#FF5A5F']
+				};
+				var chart = new google.visualization.AreaChart($('#stat_div_line')[0]);
+				chart.draw(data, options);
+			});
+		}
+	},
+	geoChart : ctx=>{
+		google.charts.load('current', {'packages':['geochart'], 'mapsApiKey': 'AIzaSyD-9tSrke72PouQMnMX-a7eZSW0jkFMBWY'});
+		google.charts.setOnLoadCallback(drawRegionsMap);
+	
+		function drawRegionsMap() {
+			var url = ctx+'/jw/list/chart/geo';
+			$.getJSON(url, d=>{
+				var data = new google.visualization.DataTable(d);
+		  
+				var options = {
+		        	displayMode: 'regions',
+		        	enableRegionInteractivity: 'true',
+		        	resolution: 'provinces',
+		        	region : 'KR',
+		        	displayMode: 'markers',
+		        	sizeAxis: { minValue: 0 },
+	        		colorAxis : {colors: ['#3182BD','#9ECAE1','#DEEBF7']},
+	        		keepAspectRatio: true
+		        };
+
+		        var chart = new google.visualization.GeoChart($('#stat_Rtop_chart')[0]);
+		        chart.draw(data, options);
+			});
+	    }
+	}
+};
 
 /*******************************
  * 숙소
@@ -226,49 +313,7 @@ jw.board = (()=>{
 			
 			//pagebar
 			$('#brd_pagebar').append(boardUI.pagebar());
-			$.getJSON(url, d=>{
-				var frame = '';
-				var sheet = '';
-				var total_count = 0;
-				$.each(d.list, (i,j)=>{
-					total_count = j.totalCnt
-				});
-				
-				var start_page = 1; //d.startPage;
-				var end_page = 2; //d.endPage;
-				var block_size = 3;	//d.blockSize;
-				var page_size = total_count/block_size;
-				
-				var page_num = 1;	//d.pageNum
-				var page_size = 2;	//d.pageSize;
-				var total_page = 3;	//d.totalPage;
-				
-				
-
-				if(total_count== 0){
-					sheet += '<li><span style="color:#D9534F;">등록된 게시글이 없습니다.<span></li>';
-					frame += sheet;
-					$('#page_form').append(frame);
-				}else{
-					//데이터 그리는 작업
-					if(start_page != 1){
-						sheet += ' <li><a onclick="" href="#" style="color:#D9534F;"><span class="glyphicon glyphicon-fast-backward" aria-hidden="true"></span></a></li>'
-							  +  ' <li><a onclick="" href="#" style="color:#D9534F;" aria-label="Previous"><span aria-hidden="true">&laquo;</span></a></li>'
-					}
-					
-					for(var i=1; i<=block_size; i++){
-						sheet += ' <li><a href="#" style="color:#D9534F;">'+i+'</a></li>';
-					}	
-					
-					if(page_size>1){
-						sheet += '  <li><a onclick="" href="#" style="color:#D9534F;" aria-label="Next"><span aria-hidden="true">&raquo;</span></a></li>'
-							  +  '  <li><a onclick="" href="#" style="color:#D9534F;"><span class="glyphicon glyphicon-fast-forward" aria-hidden="true"></span></a></li>';
-					}
-					
-					frame += sheet;
-					$('#page_form').append(frame);
-				}
-			});
+			
 		});
 	}; 
 	
@@ -301,7 +346,7 @@ jw.board = (()=>{
 					}),
 					contentType : 'application/json', 
 					success : d=>{
-						//$("#brdD_combo_lvl1").val(d.detail.cateLevel);
+						$("#brdD_txt_lvl1").val(d.detail.cateName);
 						$('#brdD_ipt_title').val(d.detail.title);
 						$('#summernote').summernote('code', d.detail.contents);
 					},
@@ -389,15 +434,20 @@ jw.board = (()=>{
 			});
 			
 			//comboBox
-			compUI.select('brdD_combo_lvl1').appendTo($('#brdD_gubun')).css({'height':'30px', 'width':'100px', 'margin-right':'5px'});
-			var url = ctx+'/jw/list/combo/x';
-			$.getJSON(url, d=>{
-				$('#brdD_combo_lvl1').empty();
-				$.each(d.combobox, (i,j)=>{
-					compUI.option(j.cateLevel, j.cateName).appendTo($('#brdD_combo_lvl1'));
-        		});
-			});	
-			$('#brdD_combo_lvl1').selectedIndex="0";
+			if(x ==='w'){
+				compUI.select('brdD_combo_lvl1').appendTo($('#brdD_gubun')).css({'height':'30px', 'width':'100px', 'margin-right':'5px'});
+				var url = ctx+'/jw/list/combo/x/x';
+				$.getJSON(url, d=>{
+					$('#brdD_combo_lvl1').empty();
+					$.each(d.combobox, (i,j)=>{
+						compUI.option(j.cateLevel, j.cateName).appendTo($('#brdD_combo_lvl1'));
+	        		});
+				});	
+				$('#brdD_combo_lvl1').selectedIndex="0";
+			}else{
+				compUI.input('brdD_txt_lvl1').appendTo($('#brdD_gubun')).attr('readonly',true).css({'height':'30px', 'width':'100px', 'margin-right':'5px', 'text-align':'center'});
+			}
+			
 			
 			//input title
 			compUI.input('brdD_ipt_title', 'text').appendTo($('#brdD_title')).css({'height':'30px', 'width':'100%'});
@@ -501,7 +551,7 @@ var $$ = (x)=>{return jw.session.getPath(x);};
 var admIndex = {
 	frame : ()=>{
 		return '<div id="container">'
-				+ '<div id="header" class="jw_index_header">'
+				+ '<div id="header" class="jw_index_header" style="background-color:#212121">'
 				+ '		<div style="float:left" class="jw_main-nav-logobox">'
                 + '			<div class="jw_main-nav-logobox2">'
                 + '				<div class="jw_main-nav-logobox3">'
@@ -538,40 +588,33 @@ var statsUI = {
 				+ '		<div style="float:left; width:55%">'
 				+ '			<div>'
 				+ '				<div class="jw_stat_title">'
-				+ '					<div style="float:left"><span class="jw_header_title">> 목표대비 실적 현황<span></div>'
+				+ '					<div style="float:left"><span class="jw_header_title">> 매출실적<span></div>'
 				+ '					<div id="stat_dvbtn_1" style="float:right"></div>'
 				+ '				</div>'
-				+ '				<div id="stat_Ltop_chart" class="jw_div_border" style="height:150px;">그래프</div>'
+				+ '				<div id="stat_div_column" class="jw_div_border" style="height:240px;">그래프</div>'
 				+ '			</div>'
 				+ '			<div>'
 				+ '				<div class="jw_stat_title">'
-				+ '					<div style="float:left"><span class="jw_header_title">> 매출실적<span></div>'
-				+ '					<div id="stat_dvbtn_2" style="float:right"></div>'
-				+ '				</div>'
-				+ '				<div id="stat_div_column" class="jw_div_border" style="height:220px;">그래프</div>'
-				+ '			</div>'
-				+ '			<div>'
-				+ '				<div class="jw_stat_title">'
-				+ '					<div style="float:left"><span class="jw_header_title">> 사용자 가입 추이<span></div>'
+				+ '					<div style="float:left"><span class="jw_header_title">> 연간 사용자 가입 추이<span></div>'
 				+ '					<div id="stat_dvbtn_3" style="float:right"></div>'
 				+ '				</div>'
-				+ '				<div id="stat_div_line" class="jw_div_border" style="height:170px;">그래프</div>'				
+				+ '				<div id="stat_div_linex" class="jw_div_border" style="height:325px;">그래프</div>'				
 				+ '			</div>'
 				+ '		</div>'
 				+ '		<div style="float:right; width:44%">'
 				+ '			<div>'
 				+ '				<div class="jw_stat_title">'
-				+ '					<div style="float:left"><span class="jw_header_title">> 도시별 호스트 분포<span></div>'
+				+ '					<div style="float:left"><span class="jw_header_title">> 지역별 숙소 분포도<span></div>'
 				+ '					<div id="stat_dvbtn_4" style="float:right"></div>'
 				+ '				</div>'
-				+ '				<div id="stat_Rtop_chart" class="jw_div_border" style="height:311px;">그래프</div>'
+				+ '				<div id="stat_Rtop_chart" class="jw_div_border" style="height:355px;">그래프</div>'
 				+ '			</div>'
 				+ '			<div>'
 				+ '				<div class="jw_stat_title">'
-				+ '					<div style="float:left"><span class="jw_header_title">> 도시별 추천 숙소TOP5<span></div>'
+				+ '					<div style="float:left"><span class="jw_header_title">> 연간 사용자 가입 추이<span></div>'
 				+ '					<div id="stat_dvbtn_5" style="float:right"></div>'
 				+ '				</div>'
-				+ '				<div id="stat_Lbot_grid" class="jw_div_border" style="height:260px;">리스트</div>'
+				+ '				<div id="stat_div_line" class="jw_div_border" style="height:210px;">리스트</div>'
 				+ '			</div>'
 				+ '		</div>'
 				+ '		</div>'
@@ -669,7 +712,7 @@ var boardUI = {
 				+ '		</div>'
 				+ '		<div style="width:100%; display:inline-block; margin-top:10px;">'
 				+ '			<div id="brdD_gubun" style="float:left; width:105px;"></div>'
-				+ '			<div id="brdD_title" style="float:left; width:91.8%;"></div>'
+				+ '			<div id="brdD_title" style="float:left; width:91.7%;"></div>'
 				+ '		</div>'
 				+ '		<div id="brd_content" style="width:100%; margin-top:5px; margin-right:5px"><div id="summernote"></div></div>'
 				+ '</div>';

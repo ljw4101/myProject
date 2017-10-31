@@ -16,4 +16,5 @@ public interface JWMapper {
 	public void delete(Command cmd);
 	
 	public List<?> comboList(Command cmd);
+	public List<?> chartList(Command cmd);
 }
