@@ -12,14 +12,20 @@
    
    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.2.0/jquery.min.js"></script>
    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js"></script>
-     
+  
+   <!-- pivot -->
+   <link rel="stylesheet" type="text/css" href="./resources/dist/css/pivot.css">
+   <script type="text/javascript" src="./resources/dist/js/jquery-1.8.3.min.js"></script>
+   <script type="text/javascript" src="./resources/dist/js/jquery-ui-1.9.2.custom.min.js"></script>
+   <script type="text/javascript" src="./resources/dist/js/pivot.js"></script>
+
    <!-- 구글 chart -->
    <script src="https://www.gstatic.com/charts/loader.js"></script>
    
    <!-- include summernote css/js-->
    <link href="http://cdnjs.cloudflare.com/ajax/libs/summernote/0.8.8/summernote.css" rel="stylesheet">
    <script src="http://cdnjs.cloudflare.com/ajax/libs/summernote/0.8.8/summernote.js"></script>
-     
+       
    <script src="${path.js}/app.js"></script>
    <script src="${path.js}/template.js"></script>
    <script src="${path.js}/bongki.js"></script>

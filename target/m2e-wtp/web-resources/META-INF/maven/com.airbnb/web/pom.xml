@@ -287,10 +287,21 @@
           <artifactId>json-lib</artifactId>
           <version>2.4</version>
           <classifier>jdk15</classifier>
-        </dependency>
-     
-
+      </dependency>
       
+      <!-- gson -->
+      <dependency>
+	      <groupId>com.googlecode.json-simple</groupId>
+	      <artifactId>json-simple</artifactId>
+	      <version>1.1.1</version>
+	  </dependency>
+	  <dependency>
+	      <groupId>com.google.code.gson</groupId>
+	      <artifactId>gson</artifactId>
+	      <version>2.2.4</version>
+	  </dependency>
+      
+
       <!-- Test -->
       <dependency>
          <groupId>junit</groupId>

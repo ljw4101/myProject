@@ -1,11 +1,13 @@
 package com.airbnb.web.command;
 
+import org.codehaus.jackson.annotate.JsonIgnoreProperties;
 import org.springframework.stereotype.Component;
 
 import lombok.Data;
 
 @Component //추가함
 @Data
+@JsonIgnoreProperties
 public class ResultMap {
 	/*common ResultMap*/
 
@@ -18,7 +20,8 @@ public class ResultMap {
 				hostSerial, residenceName, infoImg,
 				rowNum, totalCnt,
 				//chart
-				colYear, colMonth, colArea, colCount, blyearSales, lyearSales, tyearSales
+				colYear, colMonth, colArea, colCount, blyearSales, lyearSales, tyearSales,
+				colPrice, colDate
 				;
 	
 	/*common yongju */

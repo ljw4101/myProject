@@ -69,27 +69,45 @@ jw.stats = (()=>{
 	
 	var setContentView = function(){
 		$('#content').html(statsUI.frame());
-		$.getScript(temp, ()=>{
-			//refresh 버튼
-			for(var i=1;i<6;i++){
-				compUI.span('stat_refbtn_'+i).appendTo($('#stat_dvbtn_'+i)).addClass('glyphicon glyphicon-refresh').css({'cursor':'pointer'})
-				.click(()=>{
-					alert('refresh');
-				});
-			}
-		});
 		
 		//chart 호출
-		callChart();
-	}; 
-	
-	var callChart = function(){
-		jw.makeGraph.columnChart(ctx);
-		jw.makeGraph.lineChart(ctx);
-		jw.makeGraph.geoChart(ctx);
+		jw.chart.geoChart();
 		
-		$("#charts").width("90%");
-	};
+		//pivot grid
+		var url = ctx + '/jw/list/pivot/x/x';
+		$.getJSON(url, d=>{
+			$("#stat_div_pivot").pivotUI(
+					[
+						{"colYear":"2017","colMonth":"10","colArea":"서울특별시","colCount":"1","colPrice":"157329"},
+						{"colYear":"2017","colMonth":"10","colArea":"서울특별시","colCount":"2","colPrice":"358500"},
+						{"colYear":"2017","colMonth":"10","colArea":"서울특별시","colCount":"2","colPrice":"191652"},
+						{"colYear":"2017","colMonth":"10","colArea":"부산광역시","colCount":"1","colPrice":"202926"},
+						{"colYear":"2017","colMonth":"09","colArea":"부산광역시","colCount":"1","colPrice":"102926"},
+						{"colYear":"2017","colMonth":"09","colArea":"부산광역시","colCount":"1","colPrice":"20526"},
+						{"colYear":"2017","colMonth":"09","colArea":"서울특별시","colCount":"1","colPrice":"202926"},
+						{"colYear":"2016","colMonth":"08","colArea":"전라북도","colCount":"1","colPrice":"102000"},
+						{"colYear":"2016","colMonth":"08","colArea":"경상북도","colCount":"1","colPrice":"107926"},
+						{"colYear":"2016","colMonth":"11","colArea":"서울특별시","colCount":"1","colPrice":"301926"},
+						{"colYear":"2016","colMonth":"11","colArea":"전라북도","colCount":"1","colPrice":"270926"},
+						{"colYear":"2016","colMonth":"12","colArea":"제주특별자치도","colCount":"1","colPrice":"202926"},
+						{"colYear":"2016","colMonth":"12","colArea":"서울특별시","colCount":"1","colPrice":"202926"},
+						{"colYear":"2016","colMonth":"12","colArea":"서울특별시","colCount":"1","colPrice":"102026"},
+						{"colYear":"2015","colMonth":"03","colArea":"서울특별시","colCount":"1","colPrice":"92926"},
+						{"colYear":"2015","colMonth":"03","colArea":"서울특별시","colCount":"1","colPrice":"72926"},
+						{"colYear":"2015","colMonth":"11","colArea":"전라북도","colCount":"1","colPrice":"60226"},
+						{"colYear":"2015","colMonth":"11","colArea":"제주특별자치도","colCount":"1","colPrice":"202926"},
+						{"colYear":"2015","colMonth":"11","colArea":"제주특별자치도","colCount":"1","colPrice":"202926"}
+					],
+					{
+		                rows: ["colArea"],
+		                cols: ["colYear","colMonth"],
+		                vals: ["colPrice"],
+		                aggregatorName: "Sum as Fraction of Total"
+		            }
+		        );
+		});
+		
+	}; 
 	
 	return { init : init };
 })();
@@ -99,57 +117,19 @@ jw.stats = (()=>{
  * 객체 literal 생성방식
  * 부품들을 (DOM객체)return 하기만 하면 됨
  *******************************/
-jw.makeGraph = 
-{
-	columnChart : ctx=>{
-		google.charts.load('current', {'packages':['bar']});
-	    google.charts.setOnLoadCallback(drawChart);
-	    
-	    function drawChart() {
-	    	var url = ctx+'/jw/list/chart/column';
-			$.getJSON(url, d=>{
-				var data = new google.visualization.DataTable(d);
-		  
-				var options = {
-						title : ' ',
-		                bars: 'vertical',
-		                vAxis: {format: 'decimal'},
-		                legend: { position: 'bottom' },
-		                width : 680,
-		                colors: ['#7570b3', '#008489', '#FF5A5F']
-		        };
-				
-				var chart = new google.charts.Bar(document.getElementById('stat_div_column'));
-		        chart.draw(data, google.charts.Bar.convertOptions(options));
-			});
-	    }
-	},
-	lineChart : ctx=>{
-		google.charts.load('current', {'packages':['corechart']});
-		google.charts.setOnLoadCallback(drawChart);
+jw.chart = (()=>{
+	var ctx
+	var init = ()=>{
+		ctx = $$('x');
+	};
 	
-		function drawChart() {
-			var url = ctx+'/jw/list/chart/line';
-			$.getJSON(url, d=>{
-				var data = new google.visualization.DataTable(d);
-		  
-				var options = {
-		        	curveType: 'function',
-		        	legend: { position: 'bottom' },
-		        	hAxis: {titleTextStyle: {color: '#333'}},
-		        	vAxis: {minValue: 0},
-		        	colors: ['#FF5A5F']
-				};
-				var chart = new google.visualization.AreaChart($('#stat_div_line')[0]);
-				chart.draw(data, options);
-			});
-		}
-	},
-	geoChart : ctx=>{
+	var geoChart = ()=>{
+		init();
 		google.charts.load('current', {'packages':['geochart'], 'mapsApiKey': 'AIzaSyD-9tSrke72PouQMnMX-a7eZSW0jkFMBWY'});
 		google.charts.setOnLoadCallback(drawRegionsMap);
 	
 		function drawRegionsMap() {
+			console.log(1);
 			var url = ctx+'/jw/list/chart/geo';
 			$.getJSON(url, d=>{
 				var data = new google.visualization.DataTable(d);
@@ -169,8 +149,70 @@ jw.makeGraph =
 		        chart.draw(data, options);
 			});
 	    }
-	}
-};
+		
+		//lineChart 호출
+	    lineChart();
+	};
+	
+	var lineChart = ()=>{
+		google.charts.load('current', {'packages':['corechart']});
+		google.charts.setOnLoadCallback(drawChart);
+	
+		function drawChart() {
+			console.log(2);
+			var url = ctx+'/jw/list/chart/line';
+			$.getJSON(url, d=>{
+				var data = new google.visualization.DataTable(d);
+		  
+				var options = {
+		        	curveType: 'function',
+		        	legend: { position: 'bottom' },
+		        	hAxis: {titleTextStyle: {color: '#333'}},
+		        	vAxis: {minValue: 0},
+		        	colors: ['#FF5A5F']
+				};
+				var chart = new google.visualization.AreaChart($('#stat_div_line')[0]);
+				chart.draw(data, options);
+			});
+		}
+		
+		//columnChart 호출
+		columnChart();
+	};
+	
+	var columnChart = ()=>{
+		google.charts.load('current', {'packages':['bar']});
+	    google.charts.setOnLoadCallback(drawChart);
+	    
+	    function drawChart() {
+	    	console.log(3);
+	    	var url = ctx+'/jw/list/chart/column';
+			$.getJSON(url, d=>{
+				var data = new google.visualization.DataTable(d);
+		  
+				var options = {
+						title : ' ',
+		                bars: 'vertical',
+		                vAxis: {format: 'decimal'},
+		                legend: { position: 'bottom' },
+		                chartArea: {left: 30, top: 10, width: '100%', height: '70%'},
+		                hAxis: {textStyle: {fontSize: 15}},
+		                colors: ['#7570b3', '#008489', '#FF5A5F']
+		        };
+				
+				var chart = new google.charts.Bar(document.getElementById('stat_div_column'));
+		        chart.draw(data, google.charts.Bar.convertOptions(options));
+			});
+	    }
+	};
+	
+	return { 
+		init : init,
+		columnChart : columnChart,
+		lineChart : lineChart,
+		geoChart : geoChart
+	};
+})();
 
 /*******************************
  * 숙소
@@ -223,11 +265,11 @@ jw.accom = (()=>{
 			//image
 			var mainImg = (j.infoImg === "" || j.infoImg === null)?img+'/testimg.jpg':j.infoImg;
 			compUI.div("dvimg_"+i).appendTo($('#dvwrap_'+i)).css({'float':'left', 'height':'83%', 'width':'100%', 'margin-top':'5px'});
-			compUI.image('img_'+j.hostSerial, mainImg).appendTo($('#dvimg_'+i)).css({'height':'100%', 'margin':'auto', 'display':'block', 'border':'1px solid #D5D5D5'});
+			compUI.image('img_'+j.hostSerial, mainImg).appendTo($('#dvimg_'+i)).css({'width':'97%', 'height':'100%', 'margin':'auto', 'display':'block', 'border':'1px solid #D5D5D5'});
 			//content
 			compUI.div("dvbtom_"+i).appendTo($('#dvwrap_'+i)).css({'float':'left', 'height':'15%', 'width':'100%', 'margin-top':'5px'});
 			compUI.div("dv_L"+i).appendTo($('#dvbtom_'+i)).css({'float':'left'});
-			compUI.spanX().appendTo($('#dv_L'+i)).text(j.residenceName+" | "+j.memberId).css({'margin-left':'5px', 'font-weight':'bold'});
+			compUI.spanX().appendTo($('#dv_L'+i)).text("호스트 : "+j.memberId).css({'margin-left':'5px', 'font-weight':'bold'});
 			compUI.div("dv_R"+i).appendTo($('#dvbtom_'+i)).css({'float':'right'});
 			compUI.span('acc_btn_del_'+i).appendTo($('#dv_R'+i)).html('삭제').attr('displsy','inline').addClass('label label-default').css({'margin-right':'5px', 'font-size':'90%', 'cursor':'pointer'})
 			.click(()=>{
@@ -595,10 +637,10 @@ var statsUI = {
 				+ '			</div>'
 				+ '			<div>'
 				+ '				<div class="jw_stat_title">'
-				+ '					<div style="float:left"><span class="jw_header_title">> 연간 사용자 가입 추이<span></div>'
+				+ '					<div style="float:left"><span class="jw_header_title">> 지역별 연간 매출 비율<span></div>'
 				+ '					<div id="stat_dvbtn_3" style="float:right"></div>'
 				+ '				</div>'
-				+ '				<div id="stat_div_linex" class="jw_div_border" style="height:325px;">그래프</div>'				
+				+ '				<div id="stat_div_pivot" class="jw_div_border" style="height:327px;">리스트</div>'				
 				+ '			</div>'
 				+ '		</div>'
 				+ '		<div style="float:right; width:44%">'
@@ -614,7 +656,7 @@ var statsUI = {
 				+ '					<div style="float:left"><span class="jw_header_title">> 연간 사용자 가입 추이<span></div>'
 				+ '					<div id="stat_dvbtn_5" style="float:right"></div>'
 				+ '				</div>'
-				+ '				<div id="stat_div_line" class="jw_div_border" style="height:210px;">리스트</div>'
+				+ '				<div id="stat_div_line" class="jw_div_border" style="height:212px;">그리드</div>'
 				+ '			</div>'
 				+ '		</div>'
 				+ '		</div>'

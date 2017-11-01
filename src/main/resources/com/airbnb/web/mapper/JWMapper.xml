@@ -87,6 +87,22 @@
 					) t
 					GROUP BY t.area
 				</when>
+				<when test="dir == 'pivot'">
+					SELECT t.area as colArea, t.reg_year as colYear, t.reg_month as colMonth, t.regdate as colDate, COUNT(t.rsv_seq) as colCount, SUM(t.res_price) as colPrice
+					FROM(
+					SELECT a.host_serial
+					    , a.residence_name
+					    , SUBSTRING_INDEX(a.addr, ' ', 1) area
+					    , YEAR(b.regdate) as reg_year
+					    , DATE_FORMAT(b.regdate,'%m') reg_month
+					    , DATE_FORMAT(b.regdate,'%Y-%m-%d') regdate
+					    , b.rsv_seq
+					    , b.res_price 
+					FROM residence a, reservation b
+					WHERE a.host_serial = b.host_serial
+					) t
+					GROUP BY t.area, t.reg_year, t.reg_month, t.regdate
+				</when>
 			</choose>
 		</if>		
 	</select>
