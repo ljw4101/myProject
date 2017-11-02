@@ -514,55 +514,7 @@ jw.board = (()=>{
 	};
 })();
 
-/*******************************
- * 예약내역 list
- *******************************/
-jw.resvBoard = (()=>{
-   var js, temp;
-   var init = ()=>{
-      js=$$('j');
-      temp=js+'/template.js';
-   };
-   
-   var list = ()=>{
-      init();
-      $('body').html(resvbrdUI.frame());
-      $.getScript(temp, ()=>{
-         //board_list
-         $('#resv_list').html(resvbrdUI.tbl());
-         var data=[
-            { seq:'1', resdName:'test1', hostName:'test2', chkInout:'2013-10-10 ~ 2013-11-01'},
-            { seq:'2', resdName:'test1', hostName:'test2', chkInout:'2014-07-15 ~ 2014-07-20'},
-            { seq:'3', resdName:'test1', hostName:'test2', chkInout:'2017-05-31 ~ 2017-06-15'}
-         ];
-         
-         var tr="";
-         $.each(data, (i,j)=>{
-            tr += '<tr style="height:25px; text-align:center;">'
-               + '<td>'+j.seq+'</td>'
-               + '<td>'+j.resdName+'</td>'
-               + '<td>'+j.hostName+'</td>'
-               + '<td>'+j.chkInout+'</td>'
-               + '<td id="tbl_btnarea'+j.seq+'"></td>'
-               + '</tr>'
-         });
-         $('#resv_tbody').html(tr);   
-         
-         //수정 버튼
-         $.each(data, (i,j)=>{
-            compUI.span('brd_btn_res_'+i).appendTo($('#tbl_btnarea'+j.seq)).attr('displsy','inline').html('후기작성').addClass('label label-warning').css({'cursor':'pointer'})
-            .click(()=>{
-				alert('후기작성');
-			});
-         });
-         
-         //pagebar
-         $('#resv_pagebar').append(boardUI.pagebar());
-      });
-   }; 
 
-   return { list : list };
-})();
 
 /*******************************
  * session
@@ -762,35 +714,299 @@ var boardUI = {
 }
 
 /*******************************
+ * 예약내역 list
+ *******************************/
+jw.resvBoard = (function(){
+	var ctx, js, temp;
+	var init = function(){
+		ctx=$$('x');
+		js=$$('j');
+		temp=js+'/template.js';
+    };
+   
+    var list = function(ctx){
+       jw.session.init(ctx); //삭제할것
+       init();
+       
+       $('body').html(resvbrdUI.frame());
+       $('#resv_list').html(resvbrdUI.tbl());
+      
+       var sessionId = 'abc@nate.com'; //sessionStorage.getItem('smemberid');
+       var _param1 = sessionId.substring(0, sessionId.indexOf('@'));
+       var _param2 = sessionId.substring(sessionId.indexOf('@')+1, sessionId.indexOf('.'));
+       var _param3 = sessionId.substring(sessionId.indexOf('.')+1, sessionId.length);
+     
+       var url = ctx+'/jw/rev/rsvList/'+_param1+'/'+_param2+'/'+_param3;  
+       $.getJSON(url, d=>{
+    	   var tr="";
+    	   $.each(d.list, (i,j)=>{
+    		   tr += '<tr style="height:25px; text-align:center;">'
+    			    + '<td>'+(i+1)+'</td>'
+	   				+ '<td>'+j.residenceName+'</td>'
+	   				+ '<td>'+j.memberId+'</td>'
+	   				+ '<td>'+j.addr+'</td>'
+	   				+ '<td>'+j.checkin+' / '+j.checkout+'</td>'
+	   				+ '<td>'+j.totalCnt+'명</td>'
+	   				+ '<td>'+j.regdate+'</td>'
+	   				+ '<td id="tbl_btnarea'+(i+1)+'"></td>'
+	   				+ '</tr>'
+    	   });
+    	   $('#resv_tbody').html(tr);
+    	   
+    	   $.getScript(temp, ()=>{
+    		   $.each(d.list, (i,j)=>{
+    			   compUI.span('rsv_btn_review_'+i).appendTo($('#tbl_btnarea'+(i+1))).attr('displsy','inline').attr('data-toggle','modal').attr('data-target','#myModal').html('후기작성').addClass('label label-warning').css({'cursor':'pointer'})
+    			   .click(e=>{
+    				   e.preventDefault();	
+    				   $('#formCm').html(compUI.inputBtn('formBtn','submit').val('후기 작성 완료').attr('data-dismiss','modal').addClass('btn btn-danger btn-large btn-block').css({'font-size': '22px', 'font-weight':'bold','outline-style': 'none'})
+    					.click(e=>{
+    						e.preventDefault();	
+    	    				alert("후기 작성 완료");
+    					}));
+    			   });
+    			   
+    			   compUI.span('rsv_btn_del_'+i).appendTo($('#tbl_btnarea'+(i+1))).html('삭제').attr('displsy','inline').addClass('label label-danger').css({'margin-left':'3px', 'cursor':'pointer'})
+    			   .click(e=>{
+    					e.preventDefault();	
+    					if(confirm("예약 된 "+j.residenceName+"을\n정말 삭제하시겠습니까?")){
+    						$.ajax({
+    							url : ctx + '/jw/rsv/delete/rsvDel',
+    							method : 'post',
+    							dataType : 'json',
+    							data : JSON.stringify({
+    								'rsvSeq' : j.rsvSeq,
+    							}),
+    							contentType : 'application/json', 
+    							success : d=>{
+    								if(d.result === "success"){
+    									alert("삭제를 완료하였습니다!!");
+    									list(ctx);
+    								}else{
+    									alert("삭제가 실패하였습니다\n관리자에게 문의하세요");
+    								}
+    							},
+    							error : (x,s,m)=>{
+    								alert('에러발생! '+m);
+    							}
+    						});
+    					}else{
+    						return false;
+    					}
+    				});
+    			   
+        	   });
+    	   });
+       });
+       
+   };   
+   return { list : list };
+})();
+
+/*******************************
+ * 호스트 숙소 list
+ *******************************/
+jw.resiHost = (()=>{
+	var ctx, js, temp;
+	var init = function(){
+		ctx=$$('x');
+		js=$$('j');
+		temp=js+'/template.js';
+    };
+	
+    var list = ctx=>{
+    	jw.session.init(ctx); //삭제할것
+        init();
+        
+        $('body').html(hresibrdUI.frame());
+        $('#hresi_list').html(hresibrdUI.tbl());
+        
+        var sessionId = 'abc@nate.com'; //sessionStorage.getItem('smemberid');
+        var _param1 = sessionId.substring(0, sessionId.indexOf('@'));
+        var _param2 = sessionId.substring(sessionId.indexOf('@')+1, sessionId.indexOf('.'));
+        var _param3 = sessionId.substring(sessionId.indexOf('.')+1, sessionId.length);
+        
+        var url = ctx + '/jw/rev/hresiList/'+_param1+'/'+_param2+'/'+_param3;  
+        $.getJSON(url, d=>{
+        	var tr="";
+     	   	$.each(d.list, (i,j)=>{
+     	   		tr += '<tr style="height:25px; text-align:center;">'
+     	   			+ '<td>'+(i+1)+'</td>'
+ 	   				+ '<td><a onClick="'+j.hostSerial+'">'+j.residenceName+'</a></td>'
+ 	   				+ '<td>'+j.zipcode+")"+j.addr+'</td>'
+ 	   				+ '<td>'+j.price+'원</td>'
+ 	   				+ '<td>'+j.limitNo+'명</td>'
+ 	   				+ '<td id="tbl_btnarea'+(i+1)+'"></td>'
+ 	   				+ '</tr>'
+     	   });
+     	   $('#hresi_tbody').html(tr);
+     	   
+     	   $.getScript(temp, ()=>{
+     		  $.each(d.list, (i,j)=>{
+     			  compUI.span('hresi_btn_del_'+i).appendTo($('#tbl_btnarea'+(i+1))).html('삭제').attr('displsy','inline').addClass('label label-danger').css({'margin-left':'3px', 'cursor':'pointer'})
+     			  .click(e=>{
+     				  e.preventDefault();	
+     				  if(confirm("등록한 숙소 "+j.residenceName+"을\n정말 삭제하시겠습니까?")){
+     					  var _serial = j.hostSerial;
+     					  $.ajax({
+     						  url : ctx + '/jw/delete/residence',
+     						  method : 'post',
+     						  dataType : 'json',
+     						  data : JSON.stringify({
+     							  'boardSeq' : _serial,
+     						  }),
+     						  contentType : 'application/json', 
+     						  success : d=>{
+     							  if(d.result === "success"){
+     								  alert("삭제를 완료하였습니다!!");
+     								  list(ctx);
+     							  }else{
+     								  alert("삭제가 실패하였습니다\n관리자에게 문의하세요");
+     							  }
+     						  },
+     						  error : (x,s,m)=>{
+     							  alert('에러발생! '+m);
+     						  }
+     					  });
+     				  }else{
+     					  return false;
+     				  }
+     			  });
+     			  
+     			  
+     		  });
+     	   });
+
+        });        
+    };
+	
+    return { list : list };
+})();
+
+
+/*******************************
  * 예약내역 list UI (board)
  *******************************/
-var resvbrdUI = {
-   frame : ()=>{
-      return '<div id="content" style="width:80%; margin:auto">'
-            + '      <div id="resv_list"></div>'
-            + '      <div id="resv_pagebar"></div>'
-            + '</div>';
-   },
+ var resvbrdUI = {
+	frame : ()=>{
+		return '<div id="jw-content" style="width:80%; margin:auto">'
+			+ '		<div style="display:inline-block;">'
+	        + '			<span style="font-size: 20px; font-weight:bold;">예약 내역</span>'
+	        + '		</div>'	
+            + '     <div id="resv_list">'
+            + ' 	</div>'
+            + '     <div id="resv_pagebar"></div>'
+            + '</div>'
+            +' <div class="modal fade" id="myModal" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true" >'
+            +'				  <div class="modal-dialog">'
+            +'				    <div class="modal-content">'
+            +'				      <div class="modal-header">'
+            +'						<button type="button" class="close" data-dismiss="modal"><span aria-hidden="true">×</span><span class="sr-only">Close</span></button>'
+            +'						<div class="modal-title" id="myModalLabel" style="width: 50%;">'
+            +'							<div style="width: 30px; display: inline-block;">'
+            +'							<svg viewBox="0 0 1000 1000" role="presentation" aria-hidden="true" focusable="false" style="height:2em;width:2em;display:block;fill:#FF5A5F;" data-reactid="25">'
+            +'								<path d="M499.3 736.7c-51-64-81-120.1-91-168.1-10-39-6-70 11-93 18-27 45-40 80-40s62 13 80 40c17 23 21 54 11 93-11 49-41 105-91 168.1zm362.2 43c-7 47-39 86-83 105-85 37-169.1-22-241.1-102 119.1-149.1 141.1-265.1 90-340.2-30-43-73-64-128.1-64-111 0-172.1 94-148.1 203.1 14 59 51 126.1 110 201.1-37 41-72 70-103 88-24 13-47 21-69 23-101 15-180.1-83-144.1-184.1 5-13 15-37 32-74l1-2c55-120.1 122.1-256.1 199.1-407.2l2-5 22-42c17-31 24-45 51-62 13-8 29-12 47-12 36 0 64 21 76 38 6 9 13 21 22 36l21 41 3 6c77 151.1 144.1 287.1 199.1 407.2l1 1 20 46 12 29c9.2 23.1 11.2 46.1 8.2 70.1zm46-90.1c-7-22-19-48-34-79v-1c-71-151.1-137.1-287.1-200.1-409.2l-4-6c-45-92-77-147.1-170.1-147.1-92 0-131.1 64-171.1 147.1l-3 6c-63 122.1-129.1 258.1-200.1 409.2v2l-21 46c-8 19-12 29-13 32-51 140.1 54 263.1 181.1 263.1 1 0 5 0 10-1h14c66-8 134.1-50 203.1-125.1 69 75 137.1 117.1 203.1 125.1h14c5 1 9 1 10 1 127.1.1 232.1-123 181.1-263.1z" data-reactid="26"></path>'
+            +'							</svg>'
+            +'							</div>'
+            +'							<div style="display:inline-block;">'
+            +'								<span style="font-size: 20px; font-weight:bold;">숙소 후기</span>'
+            +'							</div>'
+            +'						</div>'
+            +'					</div>'
+            +'				    <div class="modal-body" style="margin: 0 auto; width: 80%;">'
+            +'				      	'
+            +'				      	<div style="width: 100%">'
+            +'				      		<span style="font-size: 22px; ">이 숙소의 후기를 남겨주세요!</span>'
+            +'				      	</div>'
+            +'				      	<div style="width: 100%; margin-top: 6%">'
+            +'					      	<div style="width: 100%">'
+            +'					      		<span style="font-size: 17px;">숙소의 총 평점을 선택하세요.</span>'
+            +'					      	</div>'
+            +'					      	<div>'
+            +'							    <p><span><input id="reviewStar1" type="radio" name="reviewStar" value="1" />1점</span> '
+            +'							    <span style="margin-left:25px; font-size: 17px;"><input id="reviewStar2" type="radio" name="reviewStar" value="2" />2점</span> '
+            +'								<span style="margin-left:25px; font-size: 17px;"><input id="reviewStar3" type="radio" name="reviewStar" value="3"  />3점</span>'
+            +'								<span style="margin-left:25px; font-size: 17px;"><input id="reviewStar4" type="radio" name="reviewStar" value="4" />4점</span>'
+            +'								<span style="margin-left:25px; font-size: 17px;"><input id="reviewStar5" type="radio" name="reviewStar" value="5" />5점</span></p>'
+            +'							</div>'
+            +'						</div>'
+            +'						<div style="width: 100%; margin-top: 6%; margin-bottom: 6%">'
+            +'							<div style="width: 100%">'
+            +'					      		<span style="font-size: 17px;">구체적인 후기 내용을 남겨주세요.</span>'
+            +'					      	</div>'
+            +'							<div>'
+            +'								<textarea id="reviewContent" name="detail_cont" cols="57" rows="7"></textarea>'
+            +'							</div>'
+            +'					    </div>	'
+            +'				    </div>'
+            +'				    <div id="formCm" class="modal-footer">'
+            +'				    </div>'
+            +'				  </div>'
+            +'				</div>'
+            +'			</div>';
+	},
    
-   tbl : ()=>{
-      var theadD =[
-               {width: '5%', txt:'No'},
-               {width: '18%', txt:'숙소이름'},
-               {width: '10%', txt:'호스트명'},
-               {width: '20%', txt:'체크인/체크아웃'},
-               {width: '10%', txt:' '}
-            ];
+	tbl : ()=>{
+		var theadD =[
+			{width: '3%', txt:'No'},
+            {width: '25%', txt:'숙소이름'},
+            {width: '10%', txt:'호스트명'},
+            {width: '20%', txt:'주소'},
+            {width: '16%', txt:'체크인/체크아웃'},
+            {width: '7%', txt:'예약인원'},
+            {width: '8%', txt:'예약일'},
+            {width: '10%', txt:' '}
+        ];
       
-      var tbl = '<table id="resv_tbl" class="table table-bordered" style="width:100%; margin-top:10px">'
-                  + '<thead><tr class="hanbit-table tr" >';
-        
-                  $.each(theadD, (i,j)=>{
-                     tbl+='<th style="width:'+j.width+'; text-align:center;">'+j.txt+'</th>'
-                  });
+		var tbl = '<table id="resv_tbl" class="table table-bordered" style="width:100%; margin-top:10px">'
+				+ '<thead><tr class="hanbit-table tr" >';
+		
+				$.each(theadD, (i,j)=>{
+					tbl+='<th style="width:'+j.width+'; text-align:center;">'+j.txt+'</th>'
+				});
          
-                 tbl += '</tr></thead><tbody id="resv_tbody">';
-                 tbl += '</tbody></table>';
+                tbl += '</tr></thead><tbody id="resv_tbody">';
+                tbl += '</tbody></table>';
          
-      return tbl;
-   }
+        return tbl;
+	}
 }
+
+/*******************************
+ * 호스트 숙소 list UI (board)
+ *******************************/
+ var hresibrdUI = {
+ 	frame : ()=>{
+ 		return '<div id="jw-content" style="width:80%; margin:auto">'
+ 			 + '	 <div style="display:inline-block;">'
+ 	         + '		<span style="font-size: 20px; font-weight:bold;">숙소 등록 내역</span>'
+ 	         + '	 </div>'	
+             + '     <div id="hresi_list">'
+             + ' 	 </div>'
+             + '     <div id="hresi_pagebar"></div>'
+             + '</div>';
+ 	},
+    
+ 	tbl : ()=>{
+ 		var theadD =[
+ 			{width: '4%', txt:'No'},
+            {width: '30%', txt:'숙소이름'},
+            {width: '30%', txt:'주소'},
+            {width: '7%', txt:'가격/1박'},
+            {width: '7%', txt:'총인원'},
+            {width: '7%', txt:' '}
+        ];
+       
+ 		var tbl = '<table id="hresi_tbl" class="table table-bordered" style="width:100%; margin-top:10px">'
+ 				+ '<thead><tr class="hanbit-table tr" >';
+ 		
+ 				$.each(theadD, (i,j)=>{
+ 					tbl+='<th style="width:'+j.width+'; text-align:center;">'+j.txt+'</th>'
+ 				});
+          
+                tbl += '</tr></thead><tbody id="hresi_tbody">';
+                tbl += '</tbody></table>';
+          
+        return tbl;
+ 	}
+ }
+ 

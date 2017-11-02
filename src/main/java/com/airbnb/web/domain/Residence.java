@@ -18,6 +18,7 @@ public class Residence {
 		addr,
 		adult,
 		teen,
-		child
+		child,
+		limitNo
 		;
 }

@@ -20,6 +20,14 @@
 		<result property="residenceName" column="residence_name"/>
 		<result property="infoImg" column="info_img"/>
 		<result property="totalCnt" column="total_cnt" />
+		<result property="rsvSeq" column="rsv_seq"/>
+		<result property="checkin" column="checkin"/>
+		<result property="checkout" column="checkout"/>
+		<result property="addr" column="addr" />
+		<result property="price" column="price"/>
+		<result property="zipcode" column="zipcode"/>
+		<result property="detailImg" column="detailImg" />
+		<result property="limitNo" column="limit_no" />
 	</resultMap>
 	
     <insert id="insert" parameterType="com.airbnb.web.command.Command">
@@ -133,6 +141,24 @@
 					OR member_id LIKE #{search}
 					ORDER BY residence_name
 				</when>
+				<when test="dir == 'rsvList'">
+					SELECT r.rsv_seq, x.residence_name, x.addr
+						, DATE_FORMAT(r.checkin,'%Y-%m-%d') checkin 
+						, DATE_FORMAT(r.checkout,'%Y-%m-%d') checkout 
+						, (r.adult+r.teen+r.child) total_cnt
+						, DATE_FORMAT(r.regdate,'%Y-%m-%d') regdate 
+						, x.member_id
+					FROM member m, reservation r, residence x
+					WHERE m.member_id = r.member_id
+					AND r.host_serial = x.host_serial
+					AND m.member_id = #{search}
+					;
+				</when>
+				<when test="dir == 'hresiList'">
+					SELECT * FROM residence
+  					WHERE member_id = #{search}
+  					;
+				</when>
 			</choose>
 		</if>		
 	</select>
@@ -178,6 +204,9 @@
     			</when>
     			<when test="dir == 'residence'">
 					WHERE host_serial = #{search}
+    			</when>
+    			<when test="dir == 'reservation'">
+					WHERE rsv_seq = #{search}
     			</when>
     		</choose>
     	</if>	

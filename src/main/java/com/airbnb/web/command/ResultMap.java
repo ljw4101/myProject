@@ -21,7 +21,11 @@ public class ResultMap {
 				rowNum, totalCnt,
 				//chart
 				colYear, colMonth, colArea, colCount, blyearSales, lyearSales, tyearSales,
-				colPrice, colDate
+				colPrice, colDate,
+				//reservation
+				checkin, checkout, addr, rsvSeq,
+				//residence
+				price, zipcode, limitNo
 				;
 	
 	/*common yongju */
