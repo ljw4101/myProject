@@ -947,6 +947,23 @@ li {
 .jw_div_border {
 	border:1px solid #D5D5D5;
 }
+
+/*추가start*/
+.jw_div_splitborder {
+	float:left; height:250px; width:24.4%; border:1px solid #D5D5D5;
+}
+.jw_div_split_title{
+	height:50px; text-align:center; color:#FFF; padding-top:10px; font-size:15px; font-weight:bold;
+}
+.jw_div_split_img{
+	height:130px; text-align:center; padding-top:18px;
+}
+.jw_div_split_num{
+	height:70px; text-align:center; font-size:30px; font-weight:bold;
+}
+
+/*추가end*/
+
 .jw_header_title {
 	font-weight:bold; font-size:16px;
 }
@@ -984,10 +1001,10 @@ li {
   	display: block;
   	font-size: 15px;
   	font-weight: 700;
-  	color: #FBC02D;
+  	color: #F2C80F;
 }
 .jw_navbar-ul>li>span:hover {
-	border-bottom:2px solid #FBC02D;
+	border-bottom:2px solid #F2C80F;
 }
 .jw_main-nav-logobox { display: table-cell !important;vertical-align: middle !important;}
 .jw_main-nav-logobox2 { display: table-cell !important;

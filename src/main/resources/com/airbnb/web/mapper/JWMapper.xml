@@ -27,7 +27,10 @@
 		<result property="price" column="price"/>
 		<result property="zipcode" column="zipcode"/>
 		<result property="detailImg" column="detailImg" />
-		<result property="limitNo" column="limit_no" />
+		<result property="limitNo" column="limit_no" /> 
+		
+		<result property="totalMember" column="total_mem" />
+		<result property="totalHost" column="total_host" /> 
 	</resultMap>
 	
     <insert id="insert" parameterType="com.airbnb.web.command.Command">
@@ -115,10 +118,12 @@
 		</if>		
 	</select>
 	
+	
 	<select id="comboList" resultMap="respMap" parameterType="com.airbnb.web.command.Command">
 		SELECT cate_level, cate_name FROM boardcate
 		WHERE board_seq = '0';
 	</select>
+	
 	
 	<select id="selectList" resultMap="respMap" parameterType="com.airbnb.web.command.Command">
 		<if test="dir != null">
@@ -164,10 +169,32 @@
 	</select>
    
 	<select id="selectOne" resultMap="respMap" parameterType="com.airbnb.web.command.Command">
-		SELECT b.board_seq, c.cate_name, b.board_title, b.board_content
-		FROM ${dir} b 
-		LEFT OUTER JOIN boardcate c ON b.board_seq = c.board_seq
-		WHERE b.${column} = #{search};
+		<if test="dir != null">
+			<choose>
+				<when test="dir == 'board'">
+					SELECT b.board_seq, c.cate_name, b.board_title, b.board_content
+					FROM ${dir} b 
+					LEFT OUTER JOIN boardcate c ON b.board_seq = c.board_seq
+					WHERE b.${column} = #{search};
+				</when>
+				<when test="dir == 'memberCnt'">
+					SELECT COUNT(*) as rowNum
+					FROM member;
+				</when>
+				<when test="dir == 'hostCnt'">
+					SELECT DISTINCT COUNT(member_id) as totalCnt
+					FROM residence;
+				</when>
+				<when test="dir == 'dailySale'">
+					SELECT IFNULL(sum(res_price),0) as sale FROM reservation
+					WHERE DATE_FORMAT(regdate,'%Y-%m-%d') = DATE_FORMAT(SYSDATE(),'%Y-%m-%d');
+				</when>
+				<when test="dir == 'yearSale'">
+					SELECT IFNULL(sum(res_price),0) as limitNo FROM reservation
+					WHERE YEAR(regdate) = YEAR(SYSDATE());
+				</when>
+			</choose>
+		</if>
 	</select>
 	
 	<select id="count" resultMap="respMap" parameterType="com.airbnb.web.command.Command">  

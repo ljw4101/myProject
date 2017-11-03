@@ -12,12 +12,6 @@
    
    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.2.0/jquery.min.js"></script>
    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js"></script>
-  
-   <!-- pivot 
-   <link rel="stylesheet" type="text/css" href="./resources/dist/css/pivot.css">
-   <script type="text/javascript" src="./resources/dist/js/jquery-1.8.3.min.js"></script>
-   <script type="text/javascript" src="./resources/dist/js/jquery-ui-1.9.2.custom.min.js"></script>
-   <script type="text/javascript" src="./resources/dist/js/pivot.js"></script>-->
 
    <!-- 구글 chart -->
    <script src="https://www.gstatic.com/charts/loader.js"></script>
@@ -40,12 +34,13 @@
 </head>
 
 <body>
-
+<span style="font-size: 10; font-weight: bold;"></span>
 </body>
 <script>
 
 	//app.common.init('${path.ctx}');
+	jw.common.init('${path.ctx}');
 	//jw.resvBoard.list('${path.ctx}');
-	jw.resiHost.list('${path.ctx}');
+	//jw.resiHost.list('${path.ctx}');
 </script>
 </html>

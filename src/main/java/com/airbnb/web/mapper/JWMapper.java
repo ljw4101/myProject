@@ -5,6 +5,7 @@ import java.util.List;
 import org.springframework.stereotype.Repository;
 
 import com.airbnb.web.command.Command;
+import com.airbnb.web.command.ResultMap;
 @Repository
 public interface JWMapper {
 	

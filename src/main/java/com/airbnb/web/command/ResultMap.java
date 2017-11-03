@@ -1,13 +1,10 @@
 package com.airbnb.web.command;
 
-import org.codehaus.jackson.annotate.JsonIgnoreProperties;
 import org.springframework.stereotype.Component;
-
 import lombok.Data;
 
 @Component //추가함
 @Data
-@JsonIgnoreProperties
 public class ResultMap {
 	/*common ResultMap*/
 

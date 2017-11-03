@@ -339,30 +339,84 @@ public class JWController {
 		return data;
 	}
 	
-	
-	
-	
-	
 	@RequestMapping(value="/jw/get/{cate}", method=RequestMethod.POST, consumes="application/json")
 	public @ResponseBody Map<?, ?> get(@RequestBody Board board, @PathVariable String cate){
 		logger.info("JWController 진입: getDetail : "+cate);
 		Map<String, Object> map = new HashMap<>();
 		
-		cmd.setColumn(board.getTitle());
-		cmd.setSearch(board.getBoardSeq());
-		cmd.setDir(cate);
-		System.out.println(cmd.getColumn()+"/"+cmd.getSearch()+"/"+cmd.getDir());
+		switch(cate) {
+			case "board":
+				cmd.setColumn(board.getTitle());
+				cmd.setSearch(board.getBoardSeq());
+				cmd.setDir(cate);
+				System.out.println(cmd.getColumn()+"/"+cmd.getSearch()+"/"+cmd.getDir());
+	
+				map.put("detail", new IGetService() {
+					@Override
+					public Object execute(Object o) {
+						return mapper.selectOne(cmd);
+					}
+				}.execute(cmd));
+				
+				System.out.println(map.get("detail"));
+				break;
+		}
 		
-		
-		map.put("detail", new IGetService() {
-			@Override
-			public Object execute(Object o) {
-				return mapper.selectOne(cmd);
-			}
-		}.execute(cmd));
 		map.put("result", "success");
-		System.out.println(map.get("detail"));
+		return map;
+	}
+	
+	@RequestMapping("/jw/get/dash/{cate}")
+	public @ResponseBody Map<?, ?> getDashBoard(@PathVariable String cate){
+		logger.info("JWController 진입: getDashBoard : "+cate);
+		Map<String, Object> map = new HashMap<>();
+		IGetService member = null;
+		IGetService host = null;
+		IGetService dsale = null;
+		IGetService ysale = null;
 		
+		switch(cate) {
+			case "memberCnt":
+				cmd.setDir(cate);
+				member = (x)-> {
+						return mapper.selectOne(cmd);
+				};
+				map.put("memCnt", member.execute(cmd));
+				
+				System.out.println("memCnt: "+map.get("memCnt"));
+				break;
+			case "hostCnt":
+				cmd.setDir(cate);
+				host = (x)-> {
+						return mapper.selectOne(cmd);
+				};
+				map.put("hostCnt", host.execute(cmd));
+				
+				System.out.println("hostCnt: "+map.get("hostCnt"));
+				break;
+			case "dailySale":
+				cmd.setDir(cate);
+				map.put("dailySale", new IGetService() {
+					@Override
+					public Object execute(Object o) {
+						return mapper.selectOne(cmd);
+					}
+				}.execute(cmd));
+				System.out.println("dailySale: "+map.get("dailySale"));
+				break;
+			case "yearSale":
+				cmd.setDir(cate);
+				map.put("yearSale", new IGetService() {
+					@Override
+					public Object execute(Object o) {
+						return mapper.selectOne(cmd);
+					}
+				}.execute(cmd));
+				System.out.println("yearSale: "+map.get("yearSale"));
+				break;
+		}
+		
+		map.put("result", "success");
 		return map;
 	}
 	
