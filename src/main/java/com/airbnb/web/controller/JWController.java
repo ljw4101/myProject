@@ -118,20 +118,6 @@ public class JWController {
 				
 				System.out.println(map.get("combobox"));
 				break;
-			case "pivot":
-				Gson gson = new Gson();
-				cmd.setDir(cate);
-				
-				String gsonData = gson.toJson(new IListService() {
-					@Override
-					public List<?> execute(Object o) {
-						return mapper.chartList(cmd);
-					}
-				}.execute(cmd));
-				
-				System.out.println("pivot: "+gsonData);
-				map.put("pivot", gsonData);
-				break;
 		}
 		
 		map.put("result", "success");
@@ -214,7 +200,7 @@ public class JWController {
 				ArrayList<ResultMap> arrColumn = (ArrayList<ResultMap>) new IListService() {
 					@Override
 					public List<?> execute(Object o) {
-						return mapper.chartList(cmd);
+						return mapper.chartCol(cmd);
 					}
 				}.execute(cmd);
 				
@@ -261,7 +247,7 @@ public class JWController {
 				ArrayList<ResultMap> arrline = (ArrayList<ResultMap>) new IListService() {
 					@Override
 					public List<?> execute(Object o) {
-						return mapper.chartList(cmd);
+						return mapper.chartLine(cmd);
 					}
 				}.execute(cmd);
 				
@@ -308,7 +294,7 @@ public class JWController {
 				ArrayList<ResultMap> arrgeo = (ArrayList<ResultMap>) new IListService() {
 					@Override
 					public List<?> execute(Object o) {
-						return mapper.chartList(cmd);
+						return mapper.chartgeo(cmd);
 					}
 				}.execute(cmd);
 				
@@ -366,56 +352,20 @@ public class JWController {
 		return map;
 	}
 	
-	@RequestMapping("/jw/get/dash/{cate}")
-	public @ResponseBody Map<?, ?> getDashBoard(@PathVariable String cate){
-		logger.info("JWController 진입: getDashBoard : "+cate);
+	@RequestMapping("/jw/get/dash")
+	public @ResponseBody Map<?, ?> getDashBoard(){
+		logger.info("JWController 진입: getDashBoard");
 		Map<String, Object> map = new HashMap<>();
-		IGetService member = null;
-		IGetService host = null;
-		IGetService dsale = null;
-		IGetService ysale = null;
+
+		cmd.setDir("dashboard");
+		map.put("data", new IGetService() {
+			@Override
+			public Object execute(Object o) {
+				return mapper.selectOne(cmd);
+			}
+		}.execute(cmd));
 		
-		switch(cate) {
-			case "memberCnt":
-				cmd.setDir(cate);
-				member = (x)-> {
-						return mapper.selectOne(cmd);
-				};
-				map.put("memCnt", member.execute(cmd));
-				
-				System.out.println("memCnt: "+map.get("memCnt"));
-				break;
-			case "hostCnt":
-				cmd.setDir(cate);
-				host = (x)-> {
-						return mapper.selectOne(cmd);
-				};
-				map.put("hostCnt", host.execute(cmd));
-				
-				System.out.println("hostCnt: "+map.get("hostCnt"));
-				break;
-			case "dailySale":
-				cmd.setDir(cate);
-				map.put("dailySale", new IGetService() {
-					@Override
-					public Object execute(Object o) {
-						return mapper.selectOne(cmd);
-					}
-				}.execute(cmd));
-				System.out.println("dailySale: "+map.get("dailySale"));
-				break;
-			case "yearSale":
-				cmd.setDir(cate);
-				map.put("yearSale", new IGetService() {
-					@Override
-					public Object execute(Object o) {
-						return mapper.selectOne(cmd);
-					}
-				}.execute(cmd));
-				System.out.println("yearSale: "+map.get("yearSale"));
-				break;
-		}
-		
+		System.out.println("dashboard: "+map.get("data"));	
 		map.put("result", "success");
 		return map;
 	}

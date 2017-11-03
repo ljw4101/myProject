@@ -74,20 +74,11 @@ jw.stats = (()=>{
 		jw.chart.geoChart();
 		
 		//split data
-		$.getJSON(ctx+'/jw/get/dash/memberCnt', d=>{
-			$('#stat_span_memCnt').text(d.memCnt.rowNum+"명");
-		});
-		
-		$.getJSON(ctx+'/jw/get/dash/hostCnt', d=>{
-			$('#stat_span_hostCnt').text(d.hostCnt.totalCnt+"명");
-		});
-		
-		$.getJSON(ctx+'/jw/get/dash/dailySale', d=>{
-			$('#stat_span_dailySale').text(d.dailySale.sale+"명");
-		});
-		
-		$.getJSON(ctx+'/jw/get/dash/yearSale', d=>{
-			$('#stat_span_yearSale').text(d.yearSale.limitNo+"명");
+		$.getJSON(ctx+'/jw/get/dash', d=>{
+			$('#stat_span_memCnt').text(d.data.rowNum);
+			$('#stat_span_hostCnt').text(d.data.totalCnt);
+			$('#stat_span_dailySale').text(d.data.sale);
+			$('#stat_span_yearSale').text(d.data.limitNo);
 		});
 	}; 
 	
@@ -122,7 +113,7 @@ jw.chart = (()=>{
 		        	resolution: 'provinces',
 		        	region : 'KR',
 		        	displayMode: 'markers',
-		        	sizeAxis: { minValue: 0 },
+		        	sizeAxis: { minValue: 1 },
 	        		colorAxis : {colors: ['#3182BD','#9ECAE1','#DEEBF7']},
 	        		keepAspectRatio: true
 		        };
@@ -568,17 +559,17 @@ var admIndex = {
 				+ '					<div id="stat_dvbtn_1" style="float:right"></div>'
 				+ '				</div>'
 				+ '				<div>'
-				+ '					<div class="jw_div_splitborder" style="margin-right:5px;">'
+				+ '					<div class="jw_div_splitborder" style="margin-right:7px;">'
 				+ '						<div class="jw_div_split_img"><span class="glyphicon glyphicon-user" style="font-size:70px; color:#01B8AA" /></div>'
 				+ '						<div class="jw_div_split_num"><span id="stat_span_memCnt" style="color:#01B8AA;"></span></div>'
 				+ '						<div class="jw_div_split_title" style="background-color:#01B8AA;"><span>가입 회원수</span></div>'
 				+ '					</div>'
-				+ '					<div class="jw_div_splitborder" style="margin-right:5px;">'
+				+ '					<div class="jw_div_splitborder" style="margin-right:7px;">'
 				+ '						<div class="jw_div_split_img"><span class="glyphicon glyphicon-home" style="font-size:70px; color:#374649" /></div>'
 				+ '						<div class="jw_div_split_num"><span id="stat_span_hostCnt" style="color:#374649;"></span></div>'
 				+ '						<div class="jw_div_split_title" style="background-color:#374649;"><span>호스팅 회원수</span></div>'
 				+ '					</div>'
-				+ '					<div class="jw_div_splitborder" style="margin-right:5px;">'
+				+ '					<div class="jw_div_splitborder" style="margin-right:7px;">'
 				+ '						<div class="jw_div_split_img"><span class="glyphicon glyphicon-usd" style="font-size:70px; color:#FF5A5F" /></div>'
 				+ '						<div class="jw_div_split_num"><span id="stat_span_dailySale" style="color:#FF5A5F;"></span></div>'
 				+ '						<div class="jw_div_split_title" style="background-color:#FF5A5F;"><span>일 매출실적</span></div>'
@@ -595,7 +586,7 @@ var admIndex = {
 				+ '					<div style="float:left"><span class="jw_header_title">> 매출실적<span></div>'
 				+ '					<div id="stat_dvbtn_3" style="float:right"></div>'
 				+ '				</div>'
-				+ '				<div id="stat_div_column" class="jw_div_border" style="height:317px;">리스트</div>'				
+				+ '				<div id="stat_div_column" class="jw_div_border" style="height:317px;"></div>'				
 				+ '			</div>'
 				+ '		</div>'
 				+ '		<div style="float:right; width:44%">'
@@ -604,14 +595,14 @@ var admIndex = {
 				+ '					<div style="float:left"><span class="jw_header_title">> 지역별 숙소 분포도<span></div>'
 				+ '					<div id="stat_dvbtn_4" style="float:right"></div>'
 				+ '				</div>'
-				+ '				<div id="stat_Rtop_chart" class="jw_div_border" style="height:355px;">그래프</div>'
+				+ '				<div id="stat_Rtop_chart" class="jw_div_border" style="height:355px;"></div>'
 				+ '			</div>'
 				+ '			<div>'
 				+ '				<div class="jw_stat_title">'
 				+ '					<div style="float:left"><span class="jw_header_title">> 연간 사용자 가입 추이<span></div>'
 				+ '					<div id="stat_dvbtn_5" style="float:right"></div>'
 				+ '				</div>'
-				+ '				<div id="stat_div_line" class="jw_div_border" style="height:212px;">그리드</div>'
+				+ '				<div id="stat_div_line" class="jw_div_border" style="height:212px;"></div>'
 				+ '			</div>'
 				+ '		</div>'
 				+ '		</div>'

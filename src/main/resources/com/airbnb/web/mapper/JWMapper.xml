@@ -48,74 +48,46 @@
     	</if>
 	</insert>
 	
-	<select id="chartList" resultType="com.airbnb.web.command.ResultMap" parameterType="com.airbnb.web.command.Command">
-		<if test="dir != null">
-			<choose>
-				<when test="dir == 'column'">
-					SELECT t.sal_month as colMonth
-					     , SUM(yy_sales) as blyearSales
-					     , SUM(y_sales) as lyearSales
-					     , SUM(sales) as tyearSales
-					FROM (
-					  SELECT MONTH(date) sal_month, sale yy_sales, 0 y_sales, 0 sales
-					  FROM accumulate
-					  WHERE YEAR(date) = YEAR(CURDATE())-2
-					  union all 
-					  SELECT MONTH(date) sal_month, 0 yy_sales, sale y_sales, 0 sales
-					  FROM accumulate
-					  WHERE YEAR(date) = YEAR(CURDATE())-1
-					  union all 
-					  SELECT MONTH(date) sal_month, 0 yy_sales, 0 y_sales, sale sales
-					  FROM accumulate
-					  WHERE YEAR(date) = YEAR(CURDATE())
-					  union all
-					  SELECT MONTH(regdate) sal_month, 0 yy_sales, 0 y_sales, TRUNCATE(SUM(res_price)/100,0) sales 
-					  FROM reservation
-					  WHERE YEAR(regdate) = YEAR(CURDATE())
-					  GROUP BY YEAR(regdate), MONTH(regdate)
-					) t
-					GROUP BY t.sal_MONTH
-				</when>
-				<when test="dir == 'line'">
-					SELECT t.year as colYear, t.cnt as colCount FROM (
-						SELECT YEAR(regdate) year, COUNT(member_id) cnt
-						FROM member
-						GROUP BY YEAR(regdate)
-						UNION ALL
-						SELECT '2016' year, 100 cnt
-						UNION ALL
-						SELECT '2015' year, 120 cnt
-						UNION ALL
-						SELECT '2014' year, 110 cnt
-					) t
-					ORDER BY t.year;
-				</when>
-				<when test="dir == 'geo'">
-					SELECT t.area as colArea, count(t.host_serial) as colCount
-					FROM(
-					  SELECT SUBSTRING_INDEX(b.addr, ' ', 1) area, host_serial 
-					  FROM residence b
-					) t
-					GROUP BY t.area
-				</when>
-				<when test="dir == 'pivot'">
-					SELECT t.area as colArea, t.reg_year as colYear, t.reg_month as colMonth, t.regdate as colDate, COUNT(t.rsv_seq) as colCount, SUM(t.res_price) as colPrice
-					FROM(
-					SELECT a.host_serial
-					    , a.residence_name
-					    , SUBSTRING_INDEX(a.addr, ' ', 1) area
-					    , YEAR(b.regdate) as reg_year
-					    , DATE_FORMAT(b.regdate,'%m') reg_month
-					    , DATE_FORMAT(b.regdate,'%Y-%m-%d') regdate
-					    , b.rsv_seq
-					    , b.res_price 
-					FROM residence a, reservation b
-					WHERE a.host_serial = b.host_serial
-					) t
-					GROUP BY t.area, t.reg_year, t.reg_month, t.regdate
-				</when>
-			</choose>
-		</if>		
+	<select id="chartgeo" resultType="com.airbnb.web.command.ResultMap" parameterType="com.airbnb.web.command.Command">
+		SELECT t.area as colArea, count(t.host_serial) as colCount
+		FROM(
+		  SELECT SUBSTRING_INDEX(b.addr, ' ', 1) area, host_serial 
+		  FROM residence b
+		) t
+		GROUP BY t.area
+	</select>
+	
+	<select id="chartCol" resultType="com.airbnb.web.command.ResultMap" parameterType="com.airbnb.web.command.Command">
+		SELECT t.sal_month as colMonth
+		     , SUM(yy_sales) as blyearSales
+		     , SUM(y_sales) as lyearSales
+		     , SUM(sales) as tyearSales
+		FROM (
+		  SELECT MONTH(date) sal_month, sale yy_sales, 0 y_sales, 0 sales
+		  FROM accumulate
+		  WHERE YEAR(date) = YEAR(CURDATE())-2
+		  union all 
+		  SELECT MONTH(date) sal_month, 0 yy_sales, sale y_sales, 0 sales
+		  FROM accumulate
+		  WHERE YEAR(date) = YEAR(CURDATE())-1
+		  union all 
+		  SELECT MONTH(date) sal_month, 0 yy_sales, 0 y_sales, sale sales
+		  FROM accumulate
+		  WHERE YEAR(date) = YEAR(CURDATE())
+		  union all
+		  SELECT MONTH(regdate) sal_month, 0 yy_sales, 0 y_sales, TRUNCATE(SUM(res_price)/100,0) sales 
+		  FROM reservation
+		  WHERE YEAR(regdate) = YEAR(CURDATE())
+		  GROUP BY YEAR(regdate), MONTH(regdate)
+		) t
+		GROUP BY t.sal_MONTH
+	</select>
+	
+	<select id="chartLine" resultType="com.airbnb.web.command.ResultMap" parameterType="com.airbnb.web.command.Command">
+		SELECT  YEAR(regdate) as colYear, COUNT(member_id) as colCount
+		FROM member
+		WHERE YEAR(regdate) > YEAR(DATE_ADD(NOW(), interval -4 year))
+		GROUP BY YEAR(regdate)
 	</select>
 	
 	
@@ -168,6 +140,7 @@
 		</if>		
 	</select>
    
+   
 	<select id="selectOne" resultMap="respMap" parameterType="com.airbnb.web.command.Command">
 		<if test="dir != null">
 			<choose>
@@ -177,29 +150,40 @@
 					LEFT OUTER JOIN boardcate c ON b.board_seq = c.board_seq
 					WHERE b.${column} = #{search};
 				</when>
-				<when test="dir == 'memberCnt'">
-					SELECT COUNT(*) as rowNum
-					FROM member;
-				</when>
-				<when test="dir == 'hostCnt'">
-					SELECT DISTINCT COUNT(member_id) as totalCnt
-					FROM residence;
-				</when>
-				<when test="dir == 'dailySale'">
-					SELECT IFNULL(sum(res_price),0) as sale FROM reservation
-					WHERE DATE_FORMAT(regdate,'%Y-%m-%d') = DATE_FORMAT(SYSDATE(),'%Y-%m-%d');
-				</when>
-				<when test="dir == 'yearSale'">
-					SELECT IFNULL(sum(res_price),0) as limitNo FROM reservation
-					WHERE YEAR(regdate) = YEAR(SYSDATE());
+				<when test="dir == 'dashboard'">
+					SELECT SUM(aa) rowNum, SUM(bb) totalCnt, SUM(cc) sale, SUM(dd) limitNo
+					FROM (
+						  SELECT COUNT(*) as aa, 0 bb, 0 cc, 0 dd
+						  FROM member
+						  UNION ALL
+						  SELECT 0 aa, t.bb, 0 cc, 0 dd 
+						  FROM(
+							    SELECT DISTINCT COUNT(member_id) as bb
+							    FROM residence
+						  )t
+						  UNION ALL
+						  SELECT 0 aa, 0 bb, t.cc, 0 dd 
+						  FROM(
+							    SELECT IFNULL(SUM(res_price),0) as cc FROM reservation
+							    WHERE DATE_FORMAT(regdate,'%Y-%m-%d') = DATE_FORMAT(SYSDATE(),'%Y-%m-%d')
+						  ) t
+						  UNION ALL
+						  SELECT 0 aa, 0 bb, 0 cc, t.dd 
+						  FROM(
+							    SELECT IFNULL(SUM(res_price),0) as dd FROM reservation
+							    WHERE YEAR(regdate) = YEAR(SYSDATE())
+					  	  ) t
+					) m
 				</when>
 			</choose>
 		</if>
 	</select>
 	
+	
 	<select id="count" resultMap="respMap" parameterType="com.airbnb.web.command.Command">  
 		SELECT COUNT(*) AS row_cont FROM vboard;
 	</select>
+
 
 	<update id="update" parameterType="com.airbnb.web.command.Command">
 		<if test="dir != null">
@@ -218,6 +202,7 @@
     		</choose>
     	</if>
 	</update>
+	
 	
 	<delete id="delete" parameterType="com.airbnb.web.command.Command">
 		<if test="dir != null">

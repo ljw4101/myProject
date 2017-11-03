@@ -24,7 +24,6 @@ public class ResultMap {
 				//residence
 				price, zipcode, limitNo
 				;
-	
 	/*common yongju */
 	/*common juyeon */
 	
